@@ -705,7 +705,6 @@ class Dataset(_Dataset):
                       self._avalue,
                       self._errorbar,]
         for ex in to_exports:
-            _logger.debug(type(ex).__name__)
             slists += [self._marker + self._affix + " " + i for i in ex.export()]
         return slists
 
@@ -906,7 +905,6 @@ class Graph(_Graph):
                   self._altxaxis, self._altyaxis,
                   self._legend, self._frame, *self._datasets]
         for x in header:
-            _logger.debug("marker: %s", x._marker)
             slist += ["    " + s for s in x.export()]
         return slist
 
@@ -974,12 +972,10 @@ class Graph(_Graph):
     def set_view(self, xmin=None, ymin=None, xmax=None, ymax=None):
         """set the view (apperance in the plot) of graph on the plot"""
         pre = self._view.get_view()
-        _logger.debug("view before %8f %8f %8f %8f", *pre)
         for i, v in enumerate([xmin, ymin, xmax, ymax]):
             if v is not None:
                 pre[i] = v
         self._view.set_view(pre)
-        _logger.debug("view after %8f %8f %8f %8f", *self._view.get_view())
 
     @property
     def x(self):
@@ -1225,14 +1221,14 @@ class Graph(_Graph):
         self._objects.append(o)
 
 # ===== functions related to graph alignment =====
-def __ga_regular(rows, cols, hgap, vgap, width_ratios=None, heigh_ratios=None):
+def __ga_regular(nrows, ncols, hgap, vgap, width_ratios=None, heigh_ratios=None):
     """regular graph alignment.
 
     By regular means graphs in the same column have the same width,
     and those in the same row have the same height.
 
     Args:
-        rows, cols (int)
+        nrows, ncols (int)
         hgap, vgap (float or Iterable)
         width_ratios, heigh_ratios (string): ratios of width/height, separated by colon.
 
@@ -1240,11 +1236,11 @@ def __ga_regular(rows, cols, hgap, vgap, width_ratios=None, heigh_ratios=None):
         3 list, each has rows*cols members
     """
     if not isinstance(hgap, Iterable):
-        hgap = [hgap,] * (cols-1)
+        hgap = [hgap,] * (ncols-1)
     if not isinstance(vgap, Iterable):
-        vgap = [vgap,] * (rows-1)
-    if len(hgap) != cols-1 or len(vgap) != rows-1:
-        raise ValueError("inconsistent number of rows/cols with vgap/hgap")
+        vgap = [vgap,] * (nrows-1)
+    if len(hgap) != ncols-1 or len(vgap) != nrows-1:
+        raise ValueError("inconsistent number of nrows/ncols with vgap/hgap")
 
     # default global min and max
     gxmin, gymin, gxmax, gymax = View._attrs['view_location'][1]
@@ -1254,19 +1250,19 @@ def __ga_regular(rows, cols, hgap, vgap, width_ratios=None, heigh_ratios=None):
         ws_cols = list(map(float, width_ratios.split(":")))
         ws_cols = [w * widths_all / sum(ws_cols) for w in ws_cols]
     else:
-        ws_cols = [widths_all / cols,] * cols
+        ws_cols = [widths_all / ncols,] * ncols
     if heigh_ratios:
         hs_rows = list(map(float, heigh_ratios.split(":")))
         hs_rows = [h * heighs_all / sum(hs_rows) for h in hs_rows]
     else:
-        hs_rows = [heighs_all / rows,] * rows
-    if len(hs_rows) != rows or len(ws_cols) != cols:
-        raise ValueError("inconsistent number of rows/cols with heighs/width_ratios")
+        hs_rows = [heighs_all / nrows,] * nrows
+    if len(hs_rows) != nrows or len(ws_cols) != ncols:
+        raise ValueError("inconsistent number of nrows/ncols with heighs/width_ratios")
     left_tops = []
     ws = []
     hs = []
-    for row in range(rows):
-        for col in range(cols):
+    for row in range(nrows):
+        for col in range(ncols):
             left = gxmin + sum(hgap[:col]) + sum(ws_cols[:col])
             top = gymax - sum(vgap[:row]) - sum(hs_rows[:row])
             left_tops.append((left, top))
@@ -1275,24 +1271,24 @@ def __ga_regular(rows, cols, hgap, vgap, width_ratios=None, heigh_ratios=None):
     return left_tops, ws, hs
 
 # pylint: disable=too-many-locals
-def _set_graph_alignment(rows, cols, hgap=0.02, vgap=0.02, width_ratios=None, heigh_ratios=None,
+def _set_graph_alignment(nrows, ncols, hgap=0.02, vgap=0.02, width_ratios=None, heigh_ratios=None,
                          **kwargs):
     """Set the graph alignment
 
     Args:
-        rows, cols (int)
+        nrows, ncols (int)
         hgap, vgap (float or Iterable)
 
     TODO:
         intricate handling of graph view with kwargs
     """
     # graphs from left to right, upper to lower
-    if rows * cols == 0:
+    if nrows * ncols == 0:
         raise ValueError("no graph is set!")
 
     graphs = []
     if not kwargs:
-        left_up_corners, widths, heighs = __ga_regular(rows, cols, hgap, vgap,
+        left_up_corners, widths, heighs = __ga_regular(nrows, ncols, hgap, vgap,
                                                        width_ratios=width_ratios,
                                                        heigh_ratios=heigh_ratios)
     else:
@@ -1312,7 +1308,7 @@ class Plot:
     """the general control object for the grace plot
 
     Args:
-        rows, cols (int) : graph alignment
+        nrows, ncols (int) : graph alignment
         hgap, vgap (float or Iterable) : horizontal and vertical gap between graphs
         lw (number) : default linewidth
         ls (str/int) : default line style
@@ -1321,7 +1317,7 @@ class Plot:
         background (str/int) : switch of background fill
         qtgrace (bool) : if true, QtGrace comments will be added 
     """
-    def __init__(self, rows=1, cols=1, hgap=0.02, vgap=0.02, bc=0, background=None,
+    def __init__(self, nrows, ncols, hgap=0.02, vgap=0.02, bc=0, background=None,
                  lw=None, ls=None, color=None, pattern=None, font=None,
                  charsize=None, symbolsize=None, sformat=None,
                  width_ratios=None, heigh_ratios=None,
@@ -1346,7 +1342,7 @@ class Plot:
                                 sformat=sformat)
         # drawing objects
         # set the graphs by alignment
-        self._graphs = _set_graph_alignment(rows=rows, cols=cols, hgap=hgap, vgap=vgap,
+        self._graphs = _set_graph_alignment(nrows=nrows, ncols=ncols, hgap=hgap, vgap=vgap,
                                             width_ratios=width_ratios, heigh_ratios=heigh_ratios,
                                             **kwargs)
         self._use_qtgrace = qtgrace
@@ -1405,16 +1401,13 @@ class Plot:
 
         the location and size of graph is determined by x/ymin/max.
         
-        Args:
-            view (4-member iterable)
-
         Returns:
-            list of graphs after addition of new graph
+            Graph object of the new graph
         """
         g = Graph(index=len(self))
         self._graphs.append(g)
         g.set_view(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
-        return self._graphs
+        return g
 
     def plot(self, *xy, **kwargs):
         """plot a data set to the first graph
@@ -1519,23 +1512,23 @@ class Plot:
             keyword arguments: see Plot class
         """
         if not args:
-            rows = 1
-            cols = 1
+            nrows = 1
+            ncols = 1
         elif len(args) == 1:
             s = int(args[0])
             if 10 < s < 100:
-                cols = s % 10
-                rows = s // 10
+                ncols = s % 10
+                nrows = s // 10
             elif 0 < s < 10:
-                rows = s
-                cols = 1
+                nrows = s
+                ncols = 1
             else:
                 raise ValueError("identifier is not supported: {}".format(s))
         elif len(args) == 2:
-            rows, cols = args
+            nrows, ncols = args
         else:
             raise ValueError("identifier is not supported: {}".format(args))
-        p = cls(rows=rows, cols=cols, **kwargs)
+        p = cls(nrows, ncols, **kwargs)
         if len(p) == 1:
             g = p[0]
         else:
