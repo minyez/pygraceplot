@@ -14,5 +14,5 @@ ax_inset.plot(x, y_inset, symbol="none", color="blue")
 p.tight_graph()
 
 ax.set_legend(loc="upper left", charsize=2.0)
-p.write("inset.agr")
+p.savefig("inset.eps")
 

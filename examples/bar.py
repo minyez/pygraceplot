@@ -13,5 +13,5 @@ ax.set_xlim(xmin=0, xmax=4)
 ax.set_ylim(ymin=2, ymax=6)
 ax.x.set_spec(x, labels=labels)
 ax.set_legend(loc="upper left", charsize=2.0)
-p.write("bar.agr")
+p.savefig("bar.eps")
 

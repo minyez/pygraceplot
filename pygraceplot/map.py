@@ -36,7 +36,8 @@ def _valid_rgb(r, g, b, name):
     d = {"R": r, "G": g, "B": b}
     for k, v in d.items():
         if v not in range(256):
-            _logger.warning("%s (%s value of %s) is not a valid RGB", v, k, name)
+            info = "{} ({} value of {}) is not a valid RGB".format(v, k, name)
+            raise ValueError(info)
 
 class ColorMap(_MapOutput):
     """Class to map the color
@@ -79,9 +80,7 @@ class ColorMap(_MapOutput):
                     _valid_rgb(*c)
                     _colors.append(c)
                 del color_map
-            except (TypeError, ValueError):
-                _logger.warning("user color_map is not loaded correctly")
-            except ImportError:
+            except (ImportError, TypeError, ValueError):
                 pass
         # check validity of pre-defined colormap
         # check if predefined rgb are valid, and there is no duplicate names
@@ -102,14 +101,6 @@ class ColorMap(_MapOutput):
 
     def __str__(self):
         return '\n'.join(self.export())
-
-    def export(self):
-        """export color maps
-
-        Returns
-            list
-        """
-        return _MapOutput.export(self)
 
     @property
     def n(self):
@@ -206,10 +197,6 @@ class FontMap(_MapOutput):
 
     def __init__(self):
         _MapOutput.__init__(self, FontMap._marker, FontMap._map, FontMap._format)
-
-    def export(self):
-        """return a list of font map strings"""
-        return _MapOutput.export(self)
 
     def __str__(self):
         return "\n".join(self.export())

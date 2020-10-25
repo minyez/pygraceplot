@@ -24,10 +24,11 @@ from pygraceplot.base import (plot_colormap, set_loclike_attr,
                               _Title, _SubTitle, _Label, _Tick, _TickLabel,
                               _DrawString, _DrawLine, _DrawEllipse)
 from pygraceplot.data import Data
-from pygraceplot.utils import encode_string
+from pygraceplot.utils import encode_string, get_file_ext
 from pygraceplot.logger import create_logger
+from pygraceplot.commands import run_gracebat
 
-_logger = create_logger("Plot")
+_logger = create_logger("graceobj")
 del create_logger
 
 class Region(_Region):
@@ -1479,22 +1480,50 @@ class Plot:
         for g in self._graphs:
             g.set_ylim(ymin=ymin, ymax=ymax)
 
-    def write(self, file=sys.stdout, mode='w'):
+    def write(self, filename=sys.stdout, mode='w'):
         """write grace plot file to `fn`
 
         Args:
-            file (str or file handle)
+            filename (str or file handle)
             mode (str) : used only when `file` is set to a filename
         """
-        if isinstance(file, str):
-            fp = open(file, mode)
-            print(self.__str__(), file=fp)
+        if isinstance(filename, str):
+            _logger.info("write agr to %s", filename)
+            fp = open(filename, mode)
+            print(str(self), file=fp)
             fp.close()
             return
-        if isinstance(file, TextIOWrapper):
-            print(self.__str__(), file=file)
+        if isinstance(filename, TextIOWrapper):
+            print(str(self), file=filename)
             return
         raise TypeError("should be str or TextIOWrapper type")
+
+    def savefig(self, figname: str, device: str = None):
+        """generating a figure file by ``filename`` which includes an extension.
+
+        This method is adapted from PyGrace.grace
+
+        Args:
+            figname (str)
+            device (str)
+        """
+        ext2device = {
+            "eps": "EPS",
+            "png": "PNG",
+            "svg":"SVG",
+            "jpg":"JPEG",
+            "jpeg":"JPEG",
+            }
+        ext = get_file_ext(figname)
+        if device is None:
+            device = ext2device.get(ext, None)
+            if device is None:
+                raise ValueError("Unsupported device for extension {}".format(ext))
+        else:
+            device = device.upper()
+            if device not in ext2device.values():
+                raise ValueError("Unsupported device {}".format(device))
+        run_gracebat(str(self), figname, device)
 
     def tight_graph(self, nxticks=5, nyticks=5, xscale=1.1, yscale=1.1):
         """make graph axis tight"""
