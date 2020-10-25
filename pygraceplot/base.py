@@ -94,16 +94,34 @@ class LineStyle:
         return get_int_const(cls.__name__, cls.pair, marker)
 
 
-class Justf:
+class Just:
     """Justification of text"""
     LEFT = 0
-    CENTER = 1
-    RIGHT = 2
+    CENTER = 2
+    RIGHT = 1
+    LEFT_BOTTOM = 4
+    LEFT_MIDDLE = 12
+    LEFT_TOP = 8
+    CENTER_BOTTOM = 6
+    CENTER_MIDDLE = 14
+    CENTER_TOP = 10
+    RIGHT_BOTTOM = 5
+    RIGHT_MIDDLE = 13
+    RIGHT_TOP = 9
 
     pair = {
-        "left" : LEFT,
+        "left": LEFT,
         "center": CENTER,
         "right": RIGHT,
+        "lb": LEFT_BOTTOM,
+        "lm": LEFT_MIDDLE,
+        "lt": LEFT_TOP,
+        "cb": CENTER_BOTTOM,
+        "cm": CENTER_MIDDLE,
+        "ct": CENTER_TOP,
+        "rb": RIGHT_BOTTOM,
+        "rm": RIGHT_MIDDLE,
+        "rt": RIGHT_TOP,
         }
     @classmethod
     def get(cls, marker):
@@ -563,13 +581,13 @@ class _Tick(_BaseOutput):
         'tick_position': (bool, Position.IN, "{:s}"),
         'default': (int, 6, "{:d}"),
         'major': (float, 1., "{:3.1f}"),
-        'major_size': (float, 0.5, "{:8f}"),
+        'major_size': (float, 1.0, "{:8f}"),
         'major_color': (float, 1., "{:3.1f}"),
         'major_linewidth': (float, 1.5, "{:3.1f}"),
         'major_linestyle': (int, LineStyle.SOLID, "{:d}"),
         'major_grid_switch': (bool, Switch.OFF, "{:s}"),
         'minor_color': (float, 1., "{:3.1f}"),
-        'minor_size': (float, 1., "{:8f}"),
+        'minor_size': (float, 0.5, "{:8f}"),
         'minor_ticks': (int, 1, "{:d}"),
         'minor_grid_switch': (bool, Switch.OFF, "{:s}"),
         'minor_linewidth': (float, 1.5, "{:3.1f}"),
@@ -750,7 +768,7 @@ class _DrawString(_BaseOutput):
         "color": (int, Color.BLACK, '{:d}'),
         "rot": (int, 0, '{:d}'),
         "font": (int, 0, '{:d}'),
-        "just": (int, Justf.LEFT, '{:d}'),
+        "just": (int, Just.LEFT, '{:d}'),
         "char_size": (float, 1.0, '{:.8f}'),
         "def": (str, "", '\"{:s}\"'),
         }

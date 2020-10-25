@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """supporting uitlities for grace plotting"""
+import os
 from re import sub, findall
 
 lower_greeks = ["alpha", "beta", "gamma", "theta", "omega"]
@@ -68,4 +69,31 @@ def get_int_const(name, pair, marker):
         return marker
     raise TypeError("should be str or int")
 
+
+def get_file_ext(path: str) -> str:
+    """Return the extension name of file at path
+
+    Args:
+        path (str): the path of the file
+
+    Returns:
+        str, if extension of the file is found
+        If file ``path`` is an existing directory, None will be returned
+        If the path have no characters after "." or have no ".", 
+        an empty string will be returned.
+    """
+    if os.path.isdir(path):
+        return None
+    base = os.path.basename(os.path.abspath(path))
+    return os.path.splitext(base)[1][1:]
+
+
+def get_filename_wo_ext(path: str) -> str:
+    """Get the filename without extension
+
+    Args:
+        path (str): the path of file
+    """
+    fn = os.path.basename(os.path.abspath(path))
+    return os.path.splitext(fn)[0]
 
