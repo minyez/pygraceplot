@@ -32,16 +32,32 @@ export PYTHONPATH="path/to/pygraceplot:$PYTHONPATH"
 
 ## Usage
 
-See scripts in `examples`.
 `pygraceplot` is capable of generating grace file for simple plots,
 such as one-variable mathematical functions ([sin](examples/sin.py)),
-bar graphs ([bar](examples/bar.py)), but also some complicated
+bar graphs ([bar](examples/bar.py)), but also some complicated ones
+such as bar plots, array of graphs and insets.
+
+For example,
+
+```python
+import numpy as np
+from pygraceplot import Plot
+p = Plot(1, 1)
+x = np.linspace(-1, 1, 20)
+y = x ** 2
+p.plot(x, y)
+p.tight_graph()
+p.write("squarex.agr")
+```
+
+draws an function `y=x^2` and export to grace file `squarex.agr`
+For more usage, pleae see scripts in `examples`.
 
 ## Examples
 
 1. `Sin` function
 
-   ![Sin(x)](examples/sin.png)
+   ![Sin(x)]()
 
 2. A bar plot
 
@@ -57,7 +73,7 @@ bar graphs ([bar](examples/bar.py)), but also some complicated
 
 ## Documentation
 
-### Export control object: `Plot`
+### Plot appearance and export control object: `Plot`
 
 #### Initialization
 

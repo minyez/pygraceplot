@@ -26,7 +26,7 @@ from pygraceplot.base import (plot_colormap, set_loclike_attr,
 from pygraceplot.data import Data
 from pygraceplot.utils import encode_string, get_file_ext
 from pygraceplot.logger import create_logger
-from pygraceplot.commands import run_gracebat
+from pygraceplot.commands import run_gracebat, ext2device
 
 _logger = create_logger("graceobj")
 del create_logger
@@ -1507,22 +1507,12 @@ class Plot:
             figname (str)
             device (str)
         """
-        ext2device = {
-            "eps": "EPS",
-            "png": "PNG",
-            "svg":"SVG",
-            "jpg":"JPEG",
-            "jpeg":"JPEG",
-            }
         ext = get_file_ext(figname)
         if device is None:
-            device = ext2device.get(ext, None)
-            if device is None:
+            try:
+                device = ext2device.get(ext.lower())
+            except KeyError:
                 raise ValueError("Unsupported device for extension {}".format(ext))
-        else:
-            device = device.upper()
-            if device not in ext2device.values():
-                raise ValueError("Unsupported device {}".format(device))
         run_gracebat(str(self), figname, device)
 
     def tight_graph(self, nxticks=5, nyticks=5, xscale=1.1, yscale=1.1):
