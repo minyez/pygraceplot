@@ -713,7 +713,7 @@ class Dataset(_Dataset):
         """Export the data part"""
         slist = ['@target G' + str(igraph) + '.' + self._marker.upper() + self._affix,
                  '@type ' + self.type,]
-        slist.extend(self.data.export())
+        slist.extend(self.data.export(transpose=True))
         slist.append('&')
         return slist
 

@@ -95,7 +95,7 @@ class Data:
                 y1, y2, y3...
                 z1, z2, z3...
         """
-        d = np.column_stack([self.__getattribute__(arg) for arg in data_cols])
+        d = np.stack([self.__getattribute__(arg) for arg in data_cols])
         if transpose:
             d = d.transpose()
         return d * scale
@@ -131,7 +131,7 @@ class Data:
                 msg = "format string does not conform data columns"
                 raise ValueError(msg, form, len(data_cols))
 
-        data_all = self._get(data_cols, transpose=transpose)
+        data_all = self._get(data_cols)
         return _export_2d_data(data_all, transpose=transpose, form=form, sep=sep)
 
     def get_data(self, transpose=False):
@@ -288,16 +288,18 @@ def _export_2d_data(data, form: str = None, transpose: bool = False, sep: str = 
 
     if sep is None:
         sep = " "
+    if transpose:
+        data = np.transpose(data)
     for i, array in enumerate(data):
         if isinstance(form, str):
             s = sep.join([form.format(x) for x in array])
         elif isinstance(form, (list, tuple)):
             if transpose:
-                # array = (x1, x2, x3)
-                s = sep.join([form[i].format(x) for x in array])
-            else:
                 # array = (x1, y1, z1)
                 s = sep.join([f.format(x) for f, x in zip(form, array)])
+            else:
+                # array = (x1, x2, x3)
+                s = sep.join([form[i].format(x) for x in array])
         else:
             raise ValueError("invalid format string {:s}".format(form))
         slist.append(s)
