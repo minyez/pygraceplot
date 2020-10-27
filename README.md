@@ -37,7 +37,7 @@ such as one-variable mathematical functions ([sin](examples/sin.py)),
 bar graphs ([bar](examples/bar.py)), but also some complicated ones
 such as bar plots, array of graphs and insets.
 
-For example,
+For a quick example,
 
 ```python
 import numpy as np
@@ -48,16 +48,17 @@ y = x ** 2
 p.plot(x, y)
 p.tight_graph()
 p.write("squarex.agr")
+p.savefig("squarex.png")
 ```
 
-draws an function `y=x^2` and export to grace file `squarex.agr`
-For more usage, pleae see scripts in `examples`.
+draws an function `y=x^2`, export to grace file `squarex.agr`
+and use `gracebat` to generate PNG file.
 
 ## Examples
 
 1. `Sin` function
 
-   ![Sin(x)]()
+   ![Sin(x)](examples/sin.png)
 
 2. A bar plot
 
@@ -70,6 +71,8 @@ For more usage, pleae see scripts in `examples`.
 4. Array of graphs
 
    ![Array of graphs](examples/array.png)
+
+For more usage, pleae see scripts and figures in `examples`.
 
 ## Documentation
 
