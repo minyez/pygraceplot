@@ -70,7 +70,7 @@ def get_int_const(name, pair, marker):
     raise TypeError("should be str or int")
 
 
-def get_file_ext(path: str) -> str:
+def get_file_ext(path):
     """Return the extension name of file at path
 
     Args:
@@ -88,7 +88,7 @@ def get_file_ext(path: str) -> str:
     return os.path.splitext(base)[1][1:]
 
 
-def get_filename_wo_ext(path: str) -> str:
+def get_filename_wo_ext(path):
     """Get the filename without extension
 
     Args:

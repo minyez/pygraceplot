@@ -69,7 +69,7 @@ class ColorMap(_MapOutput):
         (  0, 139,   0, "green4"),
         ]
 
-    def __init__(self, load_custom: bool = True):
+    def __init__(self, load_custom=True):
         # add user defined color_map
         # user is not allowed to overwrite color
         _colors = deepcopy(ColorMap._colors)

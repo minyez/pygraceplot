@@ -1,10 +1,18 @@
 # -*- coding: utf-8 -*-
 """check grace command line"""
 import subprocess as sp
-from shutil import which
-
-has_gracebat = which("gracebat")
-del which
+try:
+    from shutil import which
+    has_gracebat = which("gracebat")
+    del which
+except ImportError:
+    import os
+    path = os.popen("which gracebat").read()
+    if path:
+        has_gracebat = path.strip()
+    else:
+        has_gracebat = None
+    del os, path
 
 ext2device = {
     "ps": "PostScript",

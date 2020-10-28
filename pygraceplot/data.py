@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 """helper function in dealing with data, digits and mathematics"""
-from typing import List
 import numpy as np
 
-class Data:
+class Data(object):
     """Object for storage and extraction of data
 
     Args:
@@ -49,11 +48,10 @@ class Data:
         }
     available_types = tuple(DATATYPES.keys())
 
-    def __init__(self, *xy, datatype: str = None, label: str = None, comment: str = None,
-                 **extras):
-        datatype, self._extra_cols = Data._check_data_type(*xy, datatype=datatype, **extras)
+    def __init__(self, x, y, datatype=None, label=None, comment=None, **extras):
+        datatype, self._extra_cols = Data._check_data_type(datatype=datatype, **extras)
         if datatype.startswith("bar") or datatype.startswith("xy"):
-            self.x, self.y = xy
+            self.x, self.y = x, y
             self.x = np.array(self.x)
             self.y = np.array(self.y)
             self._data_cols = ['x', 'y']
@@ -65,19 +63,19 @@ class Data:
         self.comment = comment
         self.datatype = datatype
 
-    def xmin(self) -> float:
+    def xmin(self):
         """get the min value of abscissa"""
         return self.x.min()
 
-    def xmax(self) -> float:
+    def xmax(self):
         """get the max value of abscissa"""
         return self.x.max()
 
-    def max(self) -> float:
+    def max(self):
         """get the max value among data point"""
         return self.y.max()
 
-    def min(self) -> float:
+    def min(self):
         """get the min value among data point"""
         return self.y.min()
 
@@ -100,7 +98,7 @@ class Data:
             d = d.transpose()
         return d * scale
 
-    def _export(self, data_cols, form=None, transpose=False, sep=None) -> List[str]:
+    def _export(self, data_cols, form=None, transpose=False, sep=None):
         """export data/error to a list, each member as a line of string for data
 
         Default output will be one line for each data type, i.e.
@@ -183,7 +181,7 @@ class Data:
         """
         return self._get(self._data_cols + self._extra_cols, transpose=transpose)
 
-    def export_data(self, form=None, transpose=False, sep=None) -> List[str]:
+    def export_data(self, form=None, transpose=False, sep=None):
         """Export the data as a list of strings
         
         See get for the meaning of transpose
@@ -196,7 +194,7 @@ class Data:
         """
         return self._export(self._data_cols, form=form, transpose=transpose, sep=sep)
 
-    def export_extra(self, form=None, transpose=False, sep=None) -> List[str]:
+    def export_extra(self, form=None, transpose=False, sep=None):
         """Export extra data as a list of strings
 
         See get_extra for the meaning of transpose
@@ -209,7 +207,7 @@ class Data:
         """
         return self._export(self._extra_cols, form=form, transpose=transpose, sep=sep)
 
-    def export(self, form=None, transpose=False, sep=None) -> List[str]:
+    def export(self, form=None, transpose=False, sep=None):
         """Export both data and extras as a list of strings
         
         See get_all for the meaning of transpose
@@ -224,11 +222,10 @@ class Data:
                             form=form, transpose=transpose, sep=sep)
 
     @classmethod
-    def _check_data_type(cls, *xy, datatype=None, **extras):
+    def _check_data_type(cls, datatype=None, **extras):
         """confirm the data type of input. Valid types are declared in Data.DATATYPES
     
         Args:
-            *xy (array-like):
             datatype (str) : type of data. None for automatic detect
             extras for parsing extra data such as error
                 d(x,y) (float) : error. when the according l exists, it becomes the upper error
@@ -239,9 +236,6 @@ class Data:
             str, list
         """
         extra_cols = []
-        nd = len(xy)
-        if nd != 2:
-            raise ValueError("no enough parsed data")
         # automatic detect
         t = 'xy'
         if datatype is None:
@@ -255,9 +249,7 @@ class Data:
         # check consistency
         t = datatype.lower()
         if t in cls.available_types:
-            required_n, extra_cols = cls.DATATYPES[t]
-            if required_n != nd:
-                raise ValueError("Inconsistent data and specified datatype ", datatype)
+            _, extra_cols = cls.DATATYPES[t]
             find_all = all([required_e in extras for required_e in extra_cols])
             if not find_all:
                 raise ValueError("Inconsistent extra data and specified datatype ", datatype)
@@ -266,7 +258,7 @@ class Data:
         # some error is parsed
         return t, extra_cols
 
-def _export_2d_data(data, form: str = None, transpose: bool = False, sep: str = None) -> List[str]:
+def _export_2d_data(data, form=None, transpose=False, sep=None):
     """print the 2-dimension data into list of strings
 
     Args:

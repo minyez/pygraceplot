@@ -7,9 +7,13 @@ with similar methods to matplotlib, and without any concern about
 whether xmgrace is installed or not.
 Therefore, platform-related functions are generally discarded. (minyez)
 """
+from __future__ import print_function
 import sys
 from io import TextIOWrapper, StringIO
-from collections.abc import Iterable
+try:
+    from collections.abc import Iterable
+except ImportError:
+    from collections import Iterable
 
 from numpy import shape, absolute, loadtxt
 
@@ -82,7 +86,7 @@ class SubTitle(_SubTitle):
 class World(_WorldLike):
     """world of graph"""
     _marker = 'world'
-    _attrs = set_loclike_attr(_marker, '{:8f}', 0., 0., 1., 1.)
+    _attrs = set_loclike_attr(_marker, '{:8f}', ', ', 0., 0., 1., 1.)
 
     def __init__(self, **kwargs):
         _WorldLike.__init__(self, **kwargs)
@@ -92,12 +96,12 @@ class World(_WorldLike):
 class StackWorld(_WorldLike):
     """stack world of graph"""
     _marker = 'stack_world'
-    _attrs = set_loclike_attr(_marker, '{:8f}', 0., 1., 0., 1.)
+    _attrs = set_loclike_attr(_marker, '{:8f}', ', ', 0., 1., 0., 1.)
 
 class View(_WorldLike):
     """View of graph on the image canvas """
     _marker = 'view'
-    _attrs = set_loclike_attr(_marker, '{:8f}', 0.15, 0.10, 1.20, 0.85)
+    _attrs = set_loclike_attr(_marker, '{:8f}', ', ', 0.15, 0.10, 1.20, 0.85)
 
     def __init__(self, **kwargs):
         _WorldLike.__init__(self, **kwargs)
@@ -107,7 +111,7 @@ class View(_WorldLike):
 class Znorm(_WorldLike):
     """stack world of graph"""
     _marker = 'znorm'
-    _attrs = set_loclike_attr('znorm', '{:d}', 1)
+    _attrs = set_loclike_attr('znorm', '{:d}', ', ', 1)
 
 def _raise_unknown_attr(obj, *attrs):
     if attrs:
@@ -603,7 +607,7 @@ class Dataset(_Dataset):
         lc (str/int) : line color
         keyword arguments (arraylike): error data
     """
-    def __init__(self, index, *xy, label=None, color=None, datatype=None, comment=None,
+    def __init__(self, index, x, y, label=None, color=None, datatype=None, comment=None,
                  symbol=None, ssize=None, sc=None, sp=None, sfc=None, sfp=None,
                  slw=None, sls=None, char=None, charfont=None, skip=None,
                  line=None, lw=None, lc=None, ls=None, lp=None,
@@ -620,7 +624,7 @@ class Dataset(_Dataset):
             comment = ""
         label=encode_string(label)
         comment=encode_string(comment)
-        self.data = Data(*xy, datatype=datatype, label=label, comment=comment, **extras)
+        self.data = Data(x, y, datatype=datatype, label=label, comment=comment, **extras)
 
         _Dataset.__init__(self, index, type=self.data.datatype, comment=comment, legend=label)
         if sc is None:
@@ -724,7 +728,7 @@ class DrawString(_DrawString):
         s (str) : content of string
         xy (2-member list) : location of string
     """
-    def __init__(self, s: str, xy, ig=None, color=None, just=None, charsize=None,
+    def __init__(self, s, xy, ig=None, color=None, just=None, charsize=None,
                  rot=None, font=None, loctype=None, **kwargs):
         if ig is not None:
             ig = "g" + str(ig)
@@ -753,7 +757,8 @@ class DrawLine(_DrawLine):
         _DrawLine.__init__(self, loctype=loctype, color=Color.get(color), line_comment=ig,
                            linestyle=LineStyle.get(ls), linewidth=lw,
                            arrow=Arrow.get(arrow), arrow_type=Arrow.get(at),
-                           arrow_length=length, arrow_layout=layout, line_location=(*start, *end))
+                           arrow_length=length, arrow_layout=layout,
+                           line_location=(start[0], start[1], end[0], end[1]))
         _raise_unknown_attr(self, *kwargs)
 
     def export(self):
@@ -904,7 +909,7 @@ class Graph(_Graph):
                   #self._altxaxes, self._altyaxes,
                   self._xaxis, self._yaxis,
                   self._altxaxis, self._altyaxis,
-                  self._legend, self._frame, *self._datasets]
+                  self._legend, self._frame,] + self._datasets
         for x in header:
             slist += ["    " + s for s in x.export()]
         return slist
@@ -1004,7 +1009,7 @@ class Graph(_Graph):
         """set x axis"""
         self.set_axis(axis='alty', **kwargs)
 
-    def plot(self, *xy, **kwargs):
+    def plot(self, x, ys, **kwargs):
         """plot a dataset
         
         multiple y can be parsed along with one x.
@@ -1013,8 +1018,7 @@ class Graph(_Graph):
         only for the first set
         """
         # check if a band structure like `y` data is parsed
-        if len(xy) == 2 and len(shape(xy[1])) == 2:
-            x, ys = xy
+        if len(shape(ys)) == 2:
             n = self.ndata
             # check error in keyword arguments as well
             extras = {}
@@ -1022,14 +1026,16 @@ class Graph(_Graph):
                 if t in kwargs:
                     extras[t] = kwargs.pop(t)
             extras_first = {k: v[0] for k, v in extras.items()}
-            ds = [Dataset(n, x, ys[0], **extras_first, **kwargs),]
+            extras_first.update(kwargs)
+            ds = [Dataset(n, x, ys[0], **extras_first),]
             kwargs.pop("label", None)
             for i, y in enumerate(ys[1:]):
                 extra = {k: v[i+1] for k, v in extras.items()}
-                ds.append(Dataset(n+i+1, x, y, **kwargs, **extra))
+                extra.update(kwargs)
+                ds.append(Dataset(n+i+1, x, y, **extra))
             self._datasets.extend(ds)
         else: 
-            ds = Dataset(self.ndata, *xy, **kwargs)
+            ds = Dataset(self.ndata, x, ys, **kwargs)
             self._datasets.append(ds)
 
     def set_legend(self, **kwargs):
@@ -1107,7 +1113,7 @@ class Graph(_Graph):
     def title(self):
         return self._title.title
     @title.setter
-    def title(self, new: str):
+    def title(self, new):
         self.set_title(title=new)
 
     def set_subtitle(self, subtitle=None, **kwargs):
@@ -1120,7 +1126,7 @@ class Graph(_Graph):
     def subtitle(self):
         return self._subtitle.subtitle
     @subtitle.setter
-    def subtitle(self, new: str):
+    def subtitle(self, new):
         self.set_subtitle(subtitle=new)
 
     def text(self, s, xy, loctype=None, color=None,
@@ -1357,7 +1363,7 @@ class Plot:
         if self.description is not None:
             slist.append("description \"{}\"".format(self.description))
         headers = [self._page, self._fontmap, self._colormap,
-                   self._default, self._timestamp, *self._regions]
+                   self._default, self._timestamp,] + self._regions
         for h in headers:
             slist += h.export()
         for g in self._graphs:
@@ -1379,7 +1385,7 @@ class Plot:
     def __getitem__(self, i):
         return self._get_graph(i)
 
-    def get(self, i: int = None):
+    def get(self, i=None):
         """Get the Graph object of index i
         
         Args:
@@ -1390,12 +1396,12 @@ class Plot:
             return self._get_graph(i)
         return self._graphs
 
-    def _get_graph(self, i: int) -> Graph:
+    def _get_graph(self, i):
         """Get the Graph object of index i"""
         try:
             return self._graphs[i]
         except IndexError:
-            raise IndexError(f"G.{i} does not exist")
+            raise IndexError("G.{} does not exist".format(i))
 
     def add_graph(self, xmin=None, xmax=None, ymin=None, ymax=None):
         """add a new graph
@@ -1410,15 +1416,15 @@ class Plot:
         g.set_view(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
         return g
 
-    def plot(self, *xy, **kwargs):
+    def plot(self, x, y, **kwargs):
         """plot a data set to the first graph
 
         Args:
-            positional *xy (arraylike): x, y data. Error should be parsed to keyword arguments
+            x, y (arraylike): x, y data. Error should be parsed to keyword arguments
             igraph (int) : index of graph to plot
             keyword arguments will parsed to Graph object
         """
-        self._graphs[0].plot(*xy, **kwargs)
+        self._graphs[0].plot(x, y, **kwargs)
 
     def title(self, title=None, ig=0, **kwargs):
         """set the title of graph `igraph`"""
@@ -1498,7 +1504,7 @@ class Plot:
             return
         raise TypeError("should be str or TextIOWrapper type")
 
-    def savefig(self, figname: str, device: str = None):
+    def savefig(self, figname, device=None):
         """generating a figure file by ``filename`` which includes an extension.
 
         This method is adapted from PyGrace.grace

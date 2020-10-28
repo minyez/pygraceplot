@@ -186,7 +186,7 @@ class _Affix:
         self._is_prefix = is_prefix
     
 
-class _BaseOutput:
+class _BaseOutput(object):
     """abstract class for initializing and printing element object
 
     _attrs and _marker must be redefined,
@@ -752,7 +752,7 @@ class Arrow:
         return get_int_const(cls.__name__, cls.pair, marker)
 
 
-def set_loclike_attr(marker, form, *args, sep=', '):
+def set_loclike_attr(marker, form, sep, *args):
     f = [form,] * len(args)
     return {marker + '_location': (bool, list(args), sep.join(f))}
 
@@ -773,7 +773,7 @@ class _DrawString(_BaseOutput):
         "def": (str, "", '\"{:s}\"'),
         }
     # add string_location
-    _attrs.update(set_loclike_attr(_marker, '{:10f}', 0.0, 0.0))
+    _attrs.update(set_loclike_attr(_marker, '{:10f}', ', ', 0.0, 0.0))
 
 class _DrawLine(_BaseOutput):
     """class for line drawing"""
@@ -792,7 +792,7 @@ class _DrawLine(_BaseOutput):
         "arrow_layout": (list, [1.0, 1.0], '{:8f}, {:8f}'),
         }
     # add string_location
-    _attrs.update(set_loclike_attr(_marker, '{:10f}', 0.0, 0.0, 0.0, 0.0))
+    _attrs.update(set_loclike_attr(_marker, '{:10f}', ', ', 0.0, 0.0, 0.0, 0.0))
 
 class _DrawEllipse(_BaseOutput):
     """class for line drawing"""
@@ -809,7 +809,7 @@ class _DrawEllipse(_BaseOutput):
         "fill_pattern": (int, Pattern.SOLID, '{:d}'),
         }
     # add string_location
-    _attrs.update(set_loclike_attr(_marker, '{:10f}', 0.0, 0.0, 0.0, 0.0))
+    _attrs.update(set_loclike_attr(_marker, '{:10f}', ', ', 0.0, 0.0, 0.0, 0.0))
 
 class _Graph(_BaseOutput, _Affix):
     """Graph object, similar to Axes in matplotlib

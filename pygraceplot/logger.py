@@ -21,7 +21,7 @@ _hand.setFormatter(_format)
 _hand.setLevel(log_level)
 
 
-def create_logger(name: str, level: str = None) -> logging.Logger:
+def create_logger(name, level=None):
     """create a logger object for recording log
     
     Args:
