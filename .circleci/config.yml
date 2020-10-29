@@ -1,8 +1,5 @@
 version: 2.1
 
-orbs:
-  codecov: codecov/codecov@1.0.2
-
 workflows:
   version: 2.1
   test:
@@ -31,8 +28,7 @@ jobs:
           command: |
             export PYTHONPATH="~/pygraceplot:$PYTHONPATH"
             python -m pytest --cov=./ --cov-report=xml
-      - codecov/upload:
-          file: coverage.xml
+            codecov --file coverage.xml
   test-py36: &test-template
     working_directory: ~/pygraceplot
     docker:

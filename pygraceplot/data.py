@@ -49,7 +49,7 @@ class Data(object):
     available_types = tuple(DATATYPES.keys())
 
     def __init__(self, x, y, datatype=None, label=None, comment=None, **extras):
-        datatype, self._extra_cols = Data._check_data_type(datatype=datatype, **extras)
+        datatype, self._extra_cols = Data._check_data_consistency(x, y, datatype=datatype, **extras)
         if datatype.startswith("bar") or datatype.startswith("xy"):
             self.x, self.y = x, y
             self.x = np.array(self.x)
@@ -222,10 +222,13 @@ class Data(object):
                             form=form, transpose=transpose, sep=sep)
 
     @classmethod
-    def _check_data_type(cls, datatype=None, **extras):
-        """confirm the data type of input. Valid types are declared in Data.DATATYPES
+    def _check_data_consistency(cls, x, y, datatype=None, **extras):
+        """check the consistency of input and also confirms the data type of input.
+
+        Valid types are declared in Data.DATATYPES
     
         Args:
+            x, y (array like): data
             datatype (str) : type of data. None for automatic detect
             extras for parsing extra data such as error
                 d(x,y) (float) : error. when the according l exists, it becomes the upper error
@@ -235,14 +238,24 @@ class Data(object):
         Returns:
             str, list
         """
+        # check size consistency, i.e. number of data point
+        ndp = len(x)
+        if ndp != len(y):
+            raise ValueError("sizes of x and y data are different")
+
+        # check extra data and detect the datatype
         extra_cols = []
         # automatic detect
         t = 'xy'
         if datatype is None:
             for dt, (n, ec) in cls.DATATYPES.items():
-                if dt.startswith(t):
-                    find_all = all([extras.get(required_e, None) for required_e in ec])
+                if dt.startswith(t) and len(ec) == len(extras):
+                    edata = [extras.get(required_e, None) for required_e in ec]
+                    find_all = all(edata)
                     if find_all:
+                        size_consistent = all(map(lambda x: len(x) == ndp, edata))
+                        if not size_consistent:
+                            raise ValueError("size of extra data are inconsistent with xy")
                         extra_cols = ec
                         return dt, extra_cols
             raise ValueError("cannot determine the datatype")

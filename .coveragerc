@@ -1,0 +1,8 @@
+[run]
+source = pygraceplot
+omit = */test_*.py
+
+[report]
+ignore_errors = True
+exclude_lines =
+    raise NotImplementedError

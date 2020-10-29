@@ -3,6 +3,7 @@
 """Test graceplot"""
 import unittest as ut
 import tempfile
+from itertools import product
 
 from pygraceplot.graceplot import (Color, Symbol,
                                    Graph, View, World,
@@ -40,8 +41,17 @@ class test_World(ut.TestCase):
         self.assertListEqual(new1, w1.get_world())
         self.assertListEqual(new, w.get_world())
 
+class test_Axis(ut.TestCase):
+    """test Axix functionality"""
+
+
 class test_Graph(ut.TestCase):
     """test graph operations"""
+
+    def test_set(self):
+        """set graph attributes"""
+        g = Graph(index=0)
+        g.set(hidden=False)
 
     def test_graph_properties(self):
         """test graph properties"""
@@ -61,8 +71,8 @@ class test_Graph(ut.TestCase):
         g.set_view(0.0, 0.0, 1.0, 0.5)
         self.assertListEqual(g._view.view_location, [0.0, 0.0, 1.0, 0.5])
 
-    def test_plot(self):
-        """test plotting data"""
+    def test_single_plot(self):
+        """test plotting xy data"""
         g = Graph(index=1)
         x = [0.0, 1.0, 2.0]
         y = [1.0, 2.0, 3.0]
@@ -71,10 +81,45 @@ class test_Graph(ut.TestCase):
         # both symbol and line are colored
         self.assertEqual(g[0]._symbol.color, Color.get("red"))
         self.assertEqual(g[0]._line.color, Color.get("red"))
-        
 
-class test_Axis(ut.TestCase):
-    """test Axix functionality"""
+    def test_set_legend(self):
+        """test legend setup"""
+        g = Graph(index=0)
+        g.plot([0,], [0,], label="origin")
+        g.set_legend(switch="off", color="red")
+        horis = ["left", "center", "right"]
+        verts = ["upper", "middle", "lower", "bottom"]
+        for hori, vert in product(horis, verts):
+            g.set_legend(loc="{} {}".format(vert, hori))
+
+    def test_multiple_plot(self):
+        """test plotting xy data"""
+        g = Graph(index=1)
+        x = [0.0, 1.0, 2.0]
+        y = [[1.0, 2.0, 3.0], [2.0, 3.0, 4.0], [3.0, 4.0, 5.0]]
+        g.plot(x, y, symbol="o", color="red")
+        self.assertEqual(len(y), len(g))
+
+    def test_extremes(self):
+        """test x/ymin/max of graphs"""
+        g = Graph(index=1)
+        g.plot([1,], [2,])
+        g.plot([-1,], [3,])
+        g.plot([2.3,], [-1.2,])
+        self.assertEqual(g.xmin(), -1)
+        self.assertEqual(g.xmax(), 2.3)
+        self.assertEqual(g.min(), -1.2)
+        self.assertEqual(g.max(), 3)
+
+    def test_drawing(self):
+        """test draing objects"""
+        g = Graph(index=1)
+        g.axvline(0.0)
+        # percentage
+        g.axvline(0.5, loctype="view", ymin="10", ymax="80")
+        g.axhline(0.0)
+        # percentage
+        g.axhline(0.5, loctype="view", xmin="10", xmax="80")
 
 
 class test_Plot(ut.TestCase):
@@ -86,7 +131,7 @@ class test_Plot(ut.TestCase):
         self.assertEqual("Hello World", p.description)
 
     def test_set_default(self):
-        """default properties"""
+        """set default properties"""
         p = Plot(1, 1)
         p.set_default(font=2)
         self.assertEqual(2, p._default.font)
@@ -128,6 +173,7 @@ class test_Plot(ut.TestCase):
         p = Plot(1, 1)
         p.plot([0, 1, 2], [3, 2, 1])
         self.assertEqual(len(p), 1)
+        p.tight_graph()
         tf = tempfile.NamedTemporaryFile()
         with open(tf.name, 'w') as h:
             p.write(h)

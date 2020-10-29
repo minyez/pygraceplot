@@ -1060,36 +1060,36 @@ class Graph(_Graph):
         y = None
         try:
             loc_token = kwargs["loc"]
-            int(loc_token)
-        except ValueError:
-            try:
-                loctype = kwargs.get("loctype")
-                assert loctype == "world"
-                xmin, ymin, xmax, ymax = self._world.get_world()
-            except (KeyError, AssertionError):
-                xmin, ymin, xmax, ymax = self._view.get_view()
-
-            if loc_token.endswith("left"):
-                x = 0.95 * xmin + 0.05 * xmax
-            elif loc_token.endswith("right"):
-                x = 0.35 * xmin + 0.65 * xmax
-            elif loc_token.endswith("center"):
-                x = 0.6 * xmin + 0.4 * xmax
-
-            if loc_token.startswith("lower") or loc_token.startswith("bottom"):
-                y = 0.8 * ymin + 0.2 * ymax
-            elif loc_token.startswith("upper") or loc_token.startswith("top"):
-                y = 0.1 * ymin + 0.9 * ymax
-            elif loc_token.startswith("middle"):
-                y = 0.5 * ymin + 0.5 * ymax
-
-            loc = (x, y)
-            if x is None or y is None:
-                raise ValueError("invalid location token for legend: {}".format(kwargs["loc"]))
-            kwargs["loc"] = loc
         except KeyError:
             # location of legend is specified
             pass
+        else:
+            if isinstance(loc_token, str):
+                try:
+                    loctype = kwargs.get("loctype")
+                    assert loctype == "world"
+                    xmin, ymin, xmax, ymax = self._world.get_world()
+                except (KeyError, AssertionError):
+                    xmin, ymin, xmax, ymax = self._view.get_view()
+
+                if loc_token.endswith("left"):
+                    x = 0.95 * xmin + 0.05 * xmax
+                elif loc_token.endswith("right"):
+                    x = 0.35 * xmin + 0.65 * xmax
+                elif loc_token.endswith("center"):
+                    x = 0.6 * xmin + 0.4 * xmax
+
+                if loc_token.startswith("lower") or loc_token.startswith("bottom"):
+                    y = 0.8 * ymin + 0.2 * ymax
+                elif loc_token.startswith("upper") or loc_token.startswith("top"):
+                    y = 0.1 * ymin + 0.9 * ymax
+                elif loc_token.startswith("middle"):
+                    y = 0.5 * ymin + 0.5 * ymax
+
+                loc = (x, y)
+                if x is None or y is None:
+                    raise ValueError("invalid location token for legend: {}".format(kwargs["loc"]))
+                kwargs["loc"] = loc
 
         self._legend.set(**kwargs)
 
