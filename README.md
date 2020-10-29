@@ -2,15 +2,29 @@
 
 A matplotlib.pyplot emulation for creating Grace plots.
 
-## Why another python implementation of Grace?
+## Features
 
-1. A practice of personal Python programming
-2. More user-friendly by emulating the popular `matplotlib` package
-3. Written in Python 3.
+There has been a couple of Python implementations for Grace,
+such as [PyGrace](https://github.com/pygrace/pygrace),
+`graceplot` module in [jscatter](https://gitlab.com/biehl/jscatter/-/blob/master/src/jscatter/graceplot.py)
+pacakge, which originates from [GracePlot](sourceforge.net/projects/graceplot/).
+
+The current package was initially based on the jscatter module.
+However, as the modification went on, it was found to be more efficient to
+write from scratch, in order to make the methods intuitive and easy to call.
+
+Compared to other implementations
+
+1. Objects methods are implemented as user-friendly as possible to emulate the popular `matplotlib` package.
+  For example, there is no need to create a `Color` object to specify the color of line, label, etc.
+  For predefined colors, e.g. black, one only needs to specify `'black'` or `'k'`.
+2. Easy initilization of graphs by keyword arguments of the `Plot` object.
+3. Customizable private configuration in config file, such as color map.
+4. Work on both Python 2 and 3.
 
 ## Requirement
 
-- Python >= 3.7, but 3.5 should be sufficient
+- Python3 >= 3.5, or Python2 == 2.7.18 (earlier version not tested)
 - NumPy
 
 Run `pip install -r requirements.txt` to install dependencies.
@@ -75,6 +89,8 @@ and use `gracebat` to generate PNG file.
 For more usage, pleae see scripts and figures in `examples`.
 
 ## Documentation
+
+*N.B. this part is still under construction.*
 
 ### Plot appearance and export control object: `Plot`
 
@@ -201,4 +217,10 @@ convert -density 300 sin.eps sin.png
 ```
 
 The figures in the [examples](examples/) is produced in this way.
+
+## Issues
+
+If you have any problem or feature request,
+please feel free to open an [issue](https://github.com/minyez/pygraceplot/issues)
+for a discussion.
 
