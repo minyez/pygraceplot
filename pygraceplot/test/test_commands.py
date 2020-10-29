@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
+"""test commands"""
 import unittest as ut
 import os
 from pygraceplot.commands import run_gracebat
@@ -10,7 +10,6 @@ try:
     has_gracebat = which("gracebat")
     del which
 except ImportError:
-    import os
     path = os.popen("which gracebat").read()
     if path:
         has_gracebat = path.strip()
@@ -23,9 +22,14 @@ class test_commands(ut.TestCase):
 
     def test_raise_missing_gracebat(self):
         """gracebat is usually not installed by default on OS"""
-        if has_gracebat is None:
-            self.assertRaises(FileNotFoundError, run_gracebat,
-                              "test agr stinrg", "test.eps", "EPS")
+        try:
+            raise FileNotFoundError
+        except NameError:
+            pass
+        else:
+            if has_gracebat is None:
+                self.assertRaises(FileNotFoundError, run_gracebat,
+                                  "test agr stinrg", "test.eps", "EPS")
 
 
 if __name__ == "__main__":
