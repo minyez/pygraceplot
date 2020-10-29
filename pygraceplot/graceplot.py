@@ -2,27 +2,31 @@
 # pylint: disable=C0326,R0903,C0116
 r"""A high-level Python interface to the Grace plotting package
 
-The main purpose of this implementation is to write grace plot file
+The main purpose of current implementation is to write grace plot file
 with similar methods to matplotlib, and without any concern about
 whether xmgrace is installed or not.
 Therefore, platform-related functions are generally discarded. (minyez)
 """
 from __future__ import print_function
 import sys
-from io import TextIOWrapper, StringIO
+from io import TextIOWrapper, StringIO, FileIO
 try:
     from collections.abc import Iterable
 except ImportError:
     from collections import Iterable
+try:
+    _ = file(__file__)
+except NameError:
+    file = FileIO
 
 from numpy import shape, absolute, loadtxt
 
 from pygraceplot.map import FontMap
 from pygraceplot.base import (plot_colormap, set_loclike_attr,
                               Color, Switch, LineStyle, Pattern, Just, Arrow, Position,
-                              _Region, _Graph, _WorldLike,
-                              _BaseLine, _DropLine, _Annotation, _Symbol,
-                              _Line, _Box, _Legend, _Frame, _Axis, _Axes,
+                              _Region, _Graph, _WorldLike, LineType, BaseLineType,
+                              _BaseLine, _DropLine, _Annotation, AnnotationType,
+                              _Symbol, _Line, _Box, _Legend, _Frame, _Axis, _Axes,
                               _Fill, _Default, _Dataset, _TimesStamp, _Page,
                               _Bar, _Errorbar,
                               _Title, _SubTitle, _Label, _Tick, _TickLabel,
@@ -122,12 +126,14 @@ class Line(_Line):
     """User interface of line object"""
     def __init__(self, lt=None, color=None, pattern=None, width=None, style=None, **kwargs):
         _raise_unknown_attr(self, *kwargs)
-        _Line.__init__(self, type=lt, color=Color.get(color), pattern=Pattern.get(pattern),
+        _Line.__init__(self, type=LineType.get(lt), color=Color.get(color),
+                       pattern=Pattern.get(pattern),
                        linewidth=width, linestyle=LineStyle.get(style))
 
     def set(self, lt=None, color=None, pattern=None, width=None, style=None, **kwargs):
         _raise_unknown_attr(self, *kwargs)
-        self._set(type=lt, color=Color.get(color), pattern=Pattern.get(pattern),
+        self._set(type=LineType.get(lt), color=Color.get(color),
+                  pattern=Pattern.get(pattern),
                   linewidth=width, linestyle=LineStyle.get(style))
 
 
@@ -197,14 +203,18 @@ class Frame(_Frame):
 
 
 class BaseLine(_BaseLine):
-    """User interface of baseline"""
+    """User interface of baseline
+
+    Args:
+        lt (str) : line type. For now, support "straight" only
+    """
     def __init__(self, lt=None, switch=None, **kwargs):
         _raise_unknown_attr(self, *kwargs)
-        _BaseLine.__init__(self, type=lt, baseline_switch=Switch.get(switch))
+        _BaseLine.__init__(self, type=BaseLineType.get(lt), baseline_switch=Switch.get(switch))
     
     def set(self, lt=None, switch=None, **kwargs):
         _raise_unknown_attr(self, *kwargs)
-        self._set(type=lt, baseline_switch=Switch.get(switch))
+        self._set(type=BaseLineType.get(lt), baseline_switch=Switch.get(switch))
 
 
 class DropLine(_DropLine):
@@ -255,14 +265,14 @@ class Annotation(_Annotation):
     def __init__(self, switch=None, at=None, rot=None, color=None, prec=None, font=None,
                  charsize=None, offset=None, append=None, prepend=None, af=None, **kwargs):
         _raise_unknown_attr(self, *kwargs)
-        _Annotation.__init__(self, avalue_switch=Switch.get(switch), type=at, char_size=charsize,
-                             font=font, color=Color.get(color), rot=rot, format=af, prec=prec,
-                             append=append, prepend=prepend, offset=offset)
+        _Annotation.__init__(self, avalue_switch=Switch.get(switch), type=AnnotationType.get(at),
+                             char_size=charsize,font=font, color=Color.get(color), rot=rot,
+                             format=af, prec=prec, append=append, prepend=prepend, offset=offset)
 
     def set(self, switch=None, at=None, rot=None, color=None, prec=None, font=None,
             charsize=None, offset=None, append=None, prepend=None, af=None, **kwargs):
         _raise_unknown_attr(self, *kwargs)
-        self._set(avalue_switch=Switch.get(switch), type=at, char_size=charsize,
+        self._set(avalue_switch=Switch.get(switch), type=AnnotationType.get(at), char_size=charsize,
                   font=font, color=Color.get(color), rot=rot, format=af, prec=prec,
                   append=append, prepend=prepend, offset=offset)
 
@@ -1499,10 +1509,10 @@ class Plot:
             print(str(self), file=fp)
             fp.close()
             return
-        if isinstance(filename, TextIOWrapper):
+        if isinstance(filename, (TextIOWrapper, file)):
             print(str(self), file=filename)
             return
-        raise TypeError("should be str or TextIOWrapper type")
+        raise TypeError("expect str or TextIOWrapper type, got {}".format(type(filename)))
 
     def savefig(self, figname, device=None):
         """generating a figure file by ``filename`` which includes an extension.

@@ -1,0 +1,102 @@
+version: 2.1
+
+orbs:
+  codecov: codecov/codecov@1.0.2
+
+workflows:
+  version: 2.1
+  test:
+    jobs:
+      - test-py2718
+      - test-py351
+      - test-py371
+jobs:
+  test-py371: &test-template
+    working_directory: ~/pygraceplot
+    docker:
+      - image: circleci/python:3.7.1 # every job must define an image for the docker executor and subsequent jobs may define a different image.
+        environment:
+          PIPENV_VENV_IN_PROJECT: false
+    steps:
+      - checkout
+      - run: sudo chown -R circleci:circleci /usr/local/bin
+      - run: sudo chown -R circleci:circleci /usr/local/lib/python3.7/site-packages
+      - restore_cache:  # ensure this step occurs *before* installing dependencies
+          key: deps9-{{ .Branch }}-{{ checksum "requirements.txt" }}
+      - run:
+          name: Install dependencies
+          command: |
+            pip install -r requirements.txt
+            pip install pytest pytest-cov codecov coverage
+      - save_cache:
+          key: deps9-{{ .Branch }}-{{ checksum "requirements.txt" }}
+          paths:
+            - "/usr/local/bin"
+            - "/usr/local/lib/python3.7/site-packages"
+      - run:
+          command: |
+            export PYTHONPATH="~/pygraceplot:$PYTHONPATH"
+            pytest --cov=./ --cov-report= | tee pytest-results
+            coverage report -m | tee coverage-report.txt
+      - store_test_results:
+          path: pytest-results
+      - codecov/upload:
+          file: coverage-report.txt
+          conf: .codecov.yml
+  test-py2718: &test-template
+    working_directory: ~/pygraceplot
+    docker:
+      - image: circleci/python:2.7.18 # every job must define an image for the docker executor and subsequent jobs may define a different image.
+        environment:
+          PIPENV_VENV_IN_PROJECT: false
+    steps:
+      - checkout
+      - run: sudo chown -R circleci:circleci /usr/local/bin
+      - run: sudo chown -R circleci:circleci /usr/local/lib/python2.7/site-packages
+      - restore_cache:  # ensure this step occurs *before* installing dependencies
+          key: deps9-{{ .Branch }}-{{ checksum "requirements.txt" }}
+      - run:
+          name: Install dependencies
+          command: |
+            pip install -r requirements.txt
+            pip install pytest pytest-cov codecov coverage
+      - save_cache:
+          key: deps9-{{ .Branch }}-{{ checksum "requirements.txt" }}
+          paths:
+            - "/usr/local/bin"
+            - "/usr/local/lib/python2.7/site-packages"
+      - run:
+          command: |
+            export PYTHONPATH="~/pygraceplot:$PYTHONPATH"
+            pytest --cov=./ --cov-report= | tee pytest-results
+      - store_test_results:
+          path: pytest-results
+  test-py351: &test-template
+    working_directory: ~/pygraceplot
+    docker:
+      - image: circleci/python:3.5.1 # every job must define an image for the docker executor and subsequent jobs may define a different image.
+        environment:
+          PIPENV_VENV_IN_PROJECT: false
+    steps:
+      - checkout
+      - run: sudo chown -R circleci:circleci /usr/local/bin
+      - run: sudo chown -R circleci:circleci /usr/local/lib/python3.5/site-packages
+      - restore_cache:  # ensure this step occurs *before* installing dependencies
+          key: deps9-{{ .Branch }}-{{ checksum "requirements.txt" }}
+      - run:
+          name: Install dependencies
+          command: |
+            pip install -r requirements.txt
+            pip install pytest pytest-cov codecov coverage
+      - save_cache:
+          key: deps9-{{ .Branch }}-{{ checksum "requirements.txt" }}
+          paths:
+            - "/usr/local/bin"
+            - "/usr/local/lib/python3.5/site-packages"
+      - run:
+          command: |
+            export PYTHONPATH="~/pygraceplot:$PYTHONPATH"
+            pytest --cov=./ --cov-report= | tee pytest-results
+            coverage report -m | tee coverage-report.txt
+      - store_test_results:
+          path: pytest-results

@@ -1,5 +1,8 @@
 # pygraceplot
 
+[![CircleCI](https://circleci.com/gh/minyez/pygraceplot.svg?style=svg)](https://app.circleci.com/pipelines/github/minyez/pygraceplot/)
+[![codecov](https://codecov.io/gh/minyez/pygraceplot/branch/master/graph/badge.svg)](https://codecov.io/gh/minyez/pygraceplot)
+
 A matplotlib.pyplot emulation for creating Grace plots.
 
 ## Features

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# pylint: disable=C0326,R0903,C0116
+# pylint: disable=C0326,R0903,C0116,R0205
 """base classes for objects in grace plot"""
 import time
 from copy import deepcopy
@@ -8,7 +8,15 @@ from pygraceplot.utils import get_int_const, encode_string
 
 plot_colormap = ColorMap()
 
-class Color:
+class _IntMap:
+    pair = {None: None}
+
+    @classmethod
+    def get(cls, marker):
+        return get_int_const(cls.__name__, cls.pair, marker)
+
+
+class Color(_IntMap):
     """Predefined color constant"""
     WHITE = 0
     BLACK = 1
@@ -55,7 +63,7 @@ class Color:
         raise ValueError
 
 
-class Pattern:
+class Pattern(_IntMap):
     """Pattern"""
     NONE = 0
     SOLID = 1
@@ -63,16 +71,11 @@ class Pattern:
         "none" : NONE,
         "solid": SOLID,
         }
-    @classmethod
-    def get(cls, marker):
-        return get_int_const(cls.__name__, cls.pair, marker)
 
 
-class LineStyle:
+class LineStyle(_IntMap):
     """line style
-    
-    Args:
-        ls (int or str)"""
+    """
     NONE = 0
     SOLID = 1
     DOTTED = 2
@@ -89,12 +92,49 @@ class LineStyle:
         "dotdashed": DOTDASHED, ".-": DOTDASHED,
         }
 
-    @classmethod
-    def get(cls, marker):
-        return get_int_const(cls.__name__, cls.pair, marker)
+
+class LineType(_IntMap):
+    """type of data line
+    """
+    NONE = 0
+    STRAIGHT = 1
+    LEFT_STAIRS = 2
+    RIGHT_STAIRS = 3
+    SEGMENTS = 4
+    THREE_SEGMENTS = 5
+    INCREASE_X_ONLY = 6
+    DECREASE_X_ONLY = 7
+    pair = {
+        "none": NONE,
+        "straight": STRAIGHT,
+        "left stairs": LEFT_STAIRS, "stair": LEFT_STAIRS,
+        "right stairs": RIGHT_STAIRS, "rstair": RIGHT_STAIRS,
+        "segments": SEGMENTS, "seg": SEGMENTS,
+        "three segments": THREE_SEGMENTS, "3-seg": THREE_SEGMENTS,
+        "increase x only": INCREASE_X_ONLY, "inx": INCREASE_X_ONLY,
+        "decrease x only": DECREASE_X_ONLY, "dex": DECREASE_X_ONLY,
+        }
 
 
-class Just:
+class BaseLineType(_IntMap):
+    """type of data baseline"""
+    ZERO = 0
+    SET_MIN = 1
+    SET_MAX = 2
+    GRAPH_MIN = 3
+    GRAPH_MAX = 4
+    SET_AVERAGE = 5
+    pair = {
+        "none": ZERO, "zero": ZERO,
+        "setmin": SET_MIN, "smin": SET_MIN,
+        "setmax": SET_MAX, "smax": SET_MAX,
+        "graphmin": GRAPH_MIN, "gmin": GRAPH_MIN,
+        "graphmax": GRAPH_MAX, "gmax": GRAPH_MAX,
+        "setaverage": SET_AVERAGE, "average": SET_AVERAGE,
+        }
+
+
+class Just(_IntMap):
     """Justification of text"""
     LEFT = 0
     CENTER = 2
@@ -123,9 +163,6 @@ class Just:
         "rm": RIGHT_MIDDLE,
         "rt": RIGHT_TOP,
         }
-    @classmethod
-    def get(cls, marker):
-        return get_int_const(cls.__name__, cls.pair, marker)
 
 
 class Switch:
@@ -148,7 +185,7 @@ class Switch:
         return d.get(i)
 
 
-class Position:
+class Position(_IntMap):
     """Class for position contorl"""
     IN = -1
     BOTH = 0
@@ -160,10 +197,6 @@ class Position:
         "out": OUT,
         "auto": AUTO,
         }
-    @classmethod
-    def get(cls, marker):
-        return get_int_const(cls.__name__, cls.pair, marker)
-
     @classmethod
     def get_str(cls, i):
         """get the correspond attribute string"""
@@ -190,8 +223,9 @@ class _BaseOutput(object):
     """abstract class for initializing and printing element object
 
     _attrs and _marker must be redefined,
-    with _attrs as a tuple, each member a 4-member tuple, as
-    name, type, default value, print format for each attribute
+    with _attrs as a dict, each key is the name for the attribute
+    and each value is a 3-member tuple, type, default value and print format
+    for the attribute.
 
     When type is bool, it will be treated invidually as a special
     attribute.
@@ -262,7 +296,7 @@ class _BaseOutput(object):
                 # for inout attribute 
                 elif attr.endswith("_position"):
                     temps = attr.replace("_position", "") + " " + Position.get_str(attrv)
-                # for 2-float location attribute
+                # for location-like attribute
                 elif attr.endswith("_location"):
                     temps = attr.replace("_location", "") + " " + f.format(*attrv)
                 # for arbitray string attribute
@@ -287,7 +321,7 @@ class _BaseOutput(object):
         return "\n".join(self.export())
 
     def __repr__(self):
-        return self.__str__()
+        return str(self)
 
 
 class _Region(_BaseOutput, _Affix):
@@ -354,7 +388,7 @@ class _Line(_BaseOutput):
     """Line object of dataset"""
     _marker = 'line'
     _attrs = {
-        'type': (int, 1, "{:d}"),
+        'type': (int, LineType.STRAIGHT, "{:d}"),
         'linestyle': (int, LineStyle.SOLID, "{:d}"),
         'linewidth': (float, 1.5, "{:3.1f}"),
         'color': (int, Color.BLACK, "{:d}"),
@@ -390,7 +424,7 @@ class _Legend(_BaseOutput):
         'char_size': (float, 1.2, '{:8f}'),
         }
 
-class _Frame(_BaseOutput):
+class _Frame(_BaseOutput, _IntMap):
     """frame"""
     CLOSED = 0
     HALFOPEN = 1
@@ -406,7 +440,6 @@ class _Frame(_BaseOutput):
         "breakleft": BREAKLEFT,
         "breakright": BREAKRIGHT,
         }
-
     _marker = "frame"
     _attrs = {
         'type': (int, 0, "{:d}"),
@@ -418,15 +451,11 @@ class _Frame(_BaseOutput):
         'background_pattern': (int, 0, "{:d}"),
         }
 
-    @classmethod
-    def get(cls, marker):
-        return get_int_const(cls.__name__, cls.pair, marker)
-
 class _BaseLine(_BaseOutput):
     """baseline of dataset"""
     _marker = 'baseline'
     _attrs = {
-        'type': (int, 0, '{:d}'),
+        'type': (int, BaseLineType.ZERO, '{:d}'),
         'baseline_switch': (bool, Switch.OFF, '{:s}'),
         }
 
@@ -437,17 +466,17 @@ class _DropLine(_BaseOutput):
         'dropline_switch': (bool, Switch.OFF, '{:s}'),
         }
 
-class _Fill(_BaseOutput):
-    """Fill of dataset"""
+
+class _Fill(_BaseOutput, _IntMap):
+    """Fill of dataset dropline"""
     NONE = 0
-    SOLID = 1
-    OPAQUE = 2
+    POLYGON = 1
+    BASELINE = 2
     pair = {
         "none": NONE,
-        "solid": SOLID,
-        "opaque": OPAQUE,
+        "polygon": POLYGON, "poly": POLYGON, "p": POLYGON,
+        "baseline": BASELINE, "b": BASELINE,
         }
-
     _marker = 'fill'
     _attrs = {
         'type': (int, NONE, '{:d}'),
@@ -456,10 +485,6 @@ class _Fill(_BaseOutput):
         'pattern': (int, Pattern.SOLID, '{:d}'),
         }
 
-    @classmethod
-    def get(cls, marker):
-        return get_int_const(cls.__name__, cls.pair, marker)
-
 class _Default(_BaseOutput):
     """_Default options at head"""
     _marker = "default"
@@ -467,11 +492,28 @@ class _Default(_BaseOutput):
         "linewidth": (float, 1.5, "{:3.1f}"),
         "linestyle": (int, LineStyle.SOLID, "{:d}"),
         "color": (int, Color.BLACK, "{:d}"),
-        "pattern": (int, 1, "{:d}"),
+        "pattern": (int, Pattern.SOLID, "{:d}"),
         "font": (int, 0, "{:d}"),
         "char_size": (float, 1.5, "{:8f}"),
         "symbol_size": (float, 1., "{:8f}"),
         "sformat": (str, "%.8g", "\"{:s}\""),
+        }
+
+class AnnotationType(_IntMap):
+    """type of annotation value"""
+    NONE = 0
+    X = 1
+    Y = 2
+    XY = 3
+    STRING = 4
+    Z = 5
+    pair = {
+        "none": NONE,
+        "x": X,
+        "y": Y,
+        "xy": XY,
+        "string": STRING, "s": STRING,
+        "z": Z,
         }
 
 class _Annotation(_BaseOutput):
@@ -479,10 +521,10 @@ class _Annotation(_BaseOutput):
     _marker = "avalue"
     _attrs = {
         "avalue_switch": (bool, Switch.OFF, "{:s}"),
-        "type": (int, 2, "{:d}"),
+        "type": (int, AnnotationType.Y, "{:d}"),
         "char_size": (float, 1., "{:8f}"),
         "font": (int, 0, "{:d}"),
-        "color": (int, 1, "{:d}"),
+        "color": (int, Color.BLACK, "{:d}"),
         "rot": (int, 0, "{:d}"),
         "format": (str, "general", "{:s}"),
         "prec": (int, 3, "{:d}"),
@@ -491,11 +533,8 @@ class _Annotation(_BaseOutput):
         "offset": (list, [0.0, 0.0], "{:8f} , {:8f}"),
         }
 
-class _Symbol(_BaseOutput):
-    """Symbols of marker
-
-    Args:
-        sym (int) : index of symbol, or use predefined Symbol"""
+class _Symbol(_BaseOutput, _IntMap):
+    """Symbols of marker"""
     NONE = 0
     CIRCLE = 1
     SQUARE = 2
@@ -511,34 +550,26 @@ class _Symbol(_BaseOutput):
 
     pair = {
         "none": NONE,
-        "circle": CIRCLE,
-        "o": CIRCLE,
+        "circle": CIRCLE, "o": CIRCLE,
         "square": SQUARE,
         "diamond": DIAMOND,
-        "tup": TUP,
-        "^": TUP,
-        "tleft": TLEFT,
-        "<": TLEFT,
-        "tdown": TDOWN,
-        "v": TDOWN,
-        "tright": TRIGHT,
-        ">": TRIGHT,
-        "plus": PLUS,
-        "+": PLUS,
-        "cross": CROSS,
-        "x": CROSS,
+        "tup": TUP, "^": TUP,
+        "tleft": TLEFT, "<": TLEFT,
+        "tdown": TDOWN, "v": TDOWN,
+        "tright": TRIGHT, ">": TRIGHT,
+        "plus": PLUS, "+": PLUS,
+        "cross": CROSS, "x": CROSS,
         "star": STAR,
         "character": CHARACTER,
     }
-
     _marker = "symbol"
     _attrs = {
         "type": (bool, CIRCLE, "{:d}"),
         "size": (float, 1., "{:8f}"),
         "color": (int, Color.BLACK, "{:d}"),
-        "pattern": (int, 1, "{:d}"),
+        "pattern": (int, Pattern.SOLID, "{:d}"),
         "fill_color": (int, Color.BLACK, "{:d}"),
-        "fill_pattern": (int, 1, "{:d}"),
+        "fill_pattern": (int, Pattern.SOLID, "{:d}"),
         "linewidth": (float, 1, "{:3.1f}"),
         "linestyle": (int, LineStyle.SOLID, "{:d}"),
         "char": (int, 1, "{:d}"),
@@ -546,9 +577,6 @@ class _Symbol(_BaseOutput):
         "skip": (int, 0, "{:d}"),
         }
 
-    @classmethod
-    def get(cls, marker):
-        return get_int_const(cls.__name__, cls.pair, marker)
 
 class _Page(_BaseOutput):
     """Page"""
@@ -711,15 +739,7 @@ class _Axes(_BaseOutput, _Affix):
         _Affix.__init__(self, axes, is_prefix=True)
 
 class _Dataset(_BaseOutput, _Affix):
-    """Object of grace dataset
-
-    Args:
-        index (int) : index of the dataset
-        *xy : input data
-        datatype (str) :
-        legend (str) :
-        comment (str) :
-    """
+    """Object of grace dataset"""
     _marker = 's'
     _attrs = {
         'hidden': (str, False, '{:s}'),
@@ -731,7 +751,7 @@ class _Dataset(_BaseOutput, _Affix):
         _BaseOutput.__init__(self, **kwargs)
         _Affix.__init__(self, index, is_prefix=False)
 
-class Arrow:
+class Arrow(_IntMap):
     """type of line arrow"""
     NONE = 0
     START = 1
@@ -747,9 +767,6 @@ class Arrow:
         "filled": FILLED,
         "opaque": OPAQUE,
         }
-    @classmethod
-    def get(cls, marker):
-        return get_int_const(cls.__name__, cls.pair, marker)
 
 
 def set_loclike_attr(marker, form, sep, *args):
@@ -830,3 +847,4 @@ class _Graph(_BaseOutput, _Affix):
         self._index = index
         _BaseOutput.__init__(self, **kwargs)
         _Affix.__init__(self, index, is_prefix=False)
+
