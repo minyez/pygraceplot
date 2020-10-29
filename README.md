@@ -27,7 +27,7 @@ Compared to other implementations
 
 ## Requirement
 
-- Python3 >= 3.5, or Python2 == 2.7.18 (earlier version not tested)
+- Python3 >= 3.5, or Python2 >= 2.7
 - NumPy
 
 Run `pip install -r requirements.txt` to install dependencies.

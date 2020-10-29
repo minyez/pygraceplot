@@ -35,7 +35,7 @@ jobs:
       - store_test_results:
           path: pytest-results
       - codecov/upload:
-          file: coverage-report.txt
+          file: {{ coverage-report.txt }}
           conf: .codecov.yml
   test-py36: &test-template
     working_directory: ~/pygraceplot
