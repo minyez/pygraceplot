@@ -109,10 +109,19 @@ class test_Plot(ut.TestCase):
     def test_regular_graphs(self):
         """generate regular graph alignment"""
         p = Plot(1, 1)
-        self.assertEqual(len(p._graphs), 1*1)
+        self.assertEqual(len(p), 1*1)
         p = Plot(3, 4, hgap=[0.01, 0.0, 0.02], vgap=[0.02, 0.0],
                  width_ratios="3:2:1:4", heigh_ratios="1:3:2")
-        self.assertEqual(len(p._graphs), 3*4)
+        self.assertEqual(len(p), 3*4)
+
+    def test_subplots(self):
+        """test subplots generation"""
+        p, _ = Plot.subplots()
+        self.assertEqual(len(p), 1)
+        p, _ = Plot.subplots(3)
+        self.assertEqual(len(p), 3)
+        p, _ = Plot.subplots(32)
+        self.assertEqual(len(p), 6)
 
     def test_write(self):
         """writing to agr"""

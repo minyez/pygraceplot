@@ -30,13 +30,9 @@ jobs:
       - run:
           command: |
             export PYTHONPATH="~/pygraceplot:$PYTHONPATH"
-            pytest --cov=./ --cov-report= | tee pytest-results
-            coverage report -m | tee coverage-report.txt
-      - store_test_results:
-          path: pytest-results
+            python -m pytest --cov=./ --cov-report=xml
       - codecov/upload:
-          file: {{ coverage-report.txt }}
-          conf: .codecov.yml
+          file: coverage.xml
   test-py36: &test-template
     working_directory: ~/pygraceplot
     docker:
@@ -55,9 +51,7 @@ jobs:
       - run:
           command: |
             export PYTHONPATH="~/pygraceplot:$PYTHONPATH"
-            pytest | tee pytest-results
-      - store_test_results:
-          path: pytest-results
+            python -m pytest
   test-py35: &test-template
     working_directory: ~/pygraceplot
     docker:
@@ -76,9 +70,7 @@ jobs:
       - run:
           command: |
             export PYTHONPATH="~/pygraceplot:$PYTHONPATH"
-            pytest | tee pytest-results
-      - store_test_results:
-          path: pytest-results
+            python -m pytest
   test-py27: &test-template
     working_directory: ~/pygraceplot
     docker:
@@ -97,6 +89,4 @@ jobs:
       - run:
           command: |
             export PYTHONPATH="~/pygraceplot:$PYTHONPATH"
-            pytest | tee pytest-results
-      - store_test_results:
-          path: pytest-results
+            python -m pytest
