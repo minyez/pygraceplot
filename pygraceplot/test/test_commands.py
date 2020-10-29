@@ -26,7 +26,7 @@ class test_commands(ut.TestCase):
             raise FileNotFoundError
         except NameError:
             pass
-        else:
+        except FileNotFoundError
             if has_gracebat is None:
                 self.assertRaises(FileNotFoundError, run_gracebat,
                                   "test agr stinrg", "test.eps", "EPS")
