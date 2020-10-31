@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import unittest as ut
+import os
 
-from pygraceplot.utils import encode_string, get_file_ext, get_filename_wo_ext
+from pygraceplot.utils import encode_string, get_file_ext, get_filename_wo_ext, extract_data_from_agr
 
 class test_string_encoder(ut.TestCase):
     """test encoder to get grace-favored text string"""
@@ -34,6 +35,15 @@ class test_file_ext(ut.TestCase):
         self.assertEqual(get_filename_wo_ext(__file__), "test_utils")
         self.assertEqual(get_filename_wo_ext("test.dat"), "test")
         self.assertEqual(get_filename_wo_ext("somedir/test.dat"), "test")
+
+class test_extract_data(ut.TestCase):
+    def test_4g_1111(self):
+        """extract data from four graph with 1 dataset each"""
+        pagr = os.path.join(os.path.dirname(__file__), "fake_4g_1111.agr")
+        types, data = extract_data_from_agr(pagr)
+        self.assertEqual(len(types), 4)
+        self.assertEqual(len(data), 4)
+
 
 
 if __name__ == "__main__":

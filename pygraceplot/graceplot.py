@@ -9,7 +9,8 @@ Therefore, platform-related functions are generally discarded. (minyez)
 """
 from __future__ import print_function
 import sys
-from io import TextIOWrapper, StringIO, FileIO
+from io import TextIOWrapper, FileIO
+# compatibility
 try:
     from collections.abc import Iterable
 except ImportError:
@@ -19,11 +20,11 @@ try:
 except NameError:
     file = FileIO
 
-from numpy import shape, absolute, loadtxt
+from numpy import shape, absolute
 
 from pygraceplot.map import FontMap
 from pygraceplot.base import (plot_colormap, set_loclike_attr,
-                              Color, Switch, LineStyle, Pattern, Just, Arrow, Position,
+                              Color, Switch, LineStyle, Pattern, Just, Arrow, Pointing, Placement,
                               _Region, _Graph, _WorldLike, LineType, BaseLineType,
                               _BaseLine, _DropLine, _Annotation, AnnotationType,
                               _Symbol, _Line, _Box, _Legend, _Frame, _Axis, _Axes,
@@ -57,12 +58,12 @@ class Region(_Region):
 class Title(_Title):
     """user interface of title"""
     def __init__(self, title=None, font=None, fontsize=None, color=None, **kwargs):
-        _Title.__init__(self, title_comment=encode_string(title), size=fontsize,
+        _Title.__init__(self, title_comment=title, size=fontsize,
                         color=Color.get(color), font=font)
         _raise_unknown_attr(self, *kwargs)
     
     def set(self, title=None, font=None, fontsize=None, color=None, **kwargs):
-        self._set(title_comment=encode_string(title),
+        self._set(title_comment=title,
                   size=fontsize, color=Color.get(color), font=font)
         _raise_unknown_attr(self, *kwargs)
 
@@ -73,12 +74,12 @@ class Title(_Title):
 class SubTitle(_SubTitle):
     """user interface of title"""
     def __init__(self, subtitle=None, font=None, fontsize=None, color=None, **kwargs):
-        _SubTitle.__init__(self, subtitle_comment=encode_string(subtitle), size=fontsize,
+        _SubTitle.__init__(self, subtitle_comment=subtitle, size=fontsize,
                            color=Color.get(color), font=font)
         _raise_unknown_attr(self, *kwargs)
 
     def set(self, subtitle=None, font=None, fontsize=None, color=None, **kwargs):
-        self._set(subtitle_comment=encode_string(subtitle),
+        self._set(subtitle_comment=subtitle,
                   size=fontsize, color=Color.get(color), font=font)
         _raise_unknown_attr(self, *kwargs)
 
@@ -322,19 +323,19 @@ class TimesStamp(_TimesStamp):
 
 class Tick(_Tick):
     """User interface of axis tick"""
-    def __init__(self, major=None, mjc=None, mjs=None, mjlw=None, mjls=None, mjg=None,
-                 mic=None, mis=None, mit=None,
+    def __init__(self, switch=None, pointing=None, major=None, mjc=None, mjs=None,
+                 mjlw=None, mjls=None, mjg=None, mic=None, mis=None, mit=None,
                  milw=None, mils=None, mig=None, **kwargs):
         _raise_unknown_attr(self, *kwargs)
-        _Tick.__init__(self, major=major, major_color=Color.get(mjc), major_size=mjs,
-                       major_grid_switch=Switch.get(mjg), major_linewidth=mjlw,
-                       major_linestyle=LineStyle.get(mjls),
+        _Tick.__init__(self, tick_switch=Switch.get(switch), tick_pointing=Pointing.get(pointing),
+                       major_color=Color.get(mjc), major_size=mjs, major_grid_switch=Switch.get(mjg),
+                       major=major, major_linewidth=mjlw, major_linestyle=LineStyle.get(mjls),
                        minor_color=Color.get(mic), minor_size=mis, minor_ticks=mit,
                        minor_grid_switch=Switch.get(mig), minor_linewidth=milw,
                        minor_linestyle=LineStyle.get(mils))
 
-    def set(self, major=None, mjc=None, mjs=None, mjlw=None, mjls=None, mjg=None,
-            mic=None, mis=None, mit=None, milw=None, mils=None,
+    def set(self, switch=None, pointing=None, major=None, mjc=None, mjs=None, mjlw=None,
+            mjls=None, mjg=None, mic=None, mis=None, mit=None, milw=None, mils=None,
             mig=None, **kwargs):
         """setup axis ticks
         Args:
@@ -343,7 +344,8 @@ class Tick(_Tick):
             mjs, mis (str or int) : tick style of major and minor ticks
         """
         _raise_unknown_attr(self, *kwargs)
-        self._set(major=major, major_color=Color.get(mjc), major_size=mjs,
+        self._set(tick_switch=Switch.get(switch), tick_pointing=Pointing.get(pointing),
+                  major=major, major_color=Color.get(mjc), major_size=mjs,
                   major_grid_switch=Switch.get(mjg), major_linewidth=mjlw,
                   major_linestyle=LineStyle.get(mjls),
                   minor_color=Color.get(mic), minor_size=mis, minor_ticks=mit,
@@ -367,7 +369,7 @@ class Tick(_Tick):
 
     def set_place(self, rounded=None, place=None, **kwargs):
         _raise_unknown_attr(self, *kwargs)
-        self._set(place_rounded=rounded, place_position=Position.get(place))
+        self._set(place_rounded=rounded, place_placement=Placement.get(place))
 
     def set_spec(self, locs, labels=None, use_minor=None):
         """set custom specific ticks on axis.
@@ -386,7 +388,7 @@ class Tick(_Tick):
         if labels is not None:
             if len(labels) != len(locs):
                 raise ValueError("labels should have the same length as locs")
-            self.spec_labels.extend(encode_string(str(l)) for l in labels)
+            self.spec_labels.extend(labels)
             self.__setattr__("spec_type", "both")
         spec_major = ["major" for _ in locs]
         if use_minor:
@@ -408,18 +410,18 @@ class Bar(_Bar):
 
 class Label(_Label):
     """user interface of axis label"""
-    def __init__(self, label=None, layout=None, position=None, charsize=None,
-                 font=None, color=None, place=None, **kwargs):
+    def __init__(self, label=None, layout=None, place=None, offset=None, charsize=None,
+                 font=None, color=None, **kwargs):
         _raise_unknown_attr(self, *kwargs)
         self.label = label
         if label is None:
             self.label = ""
         self.label = self.label
-        _Label.__init__(self, layout=layout, place_position=Position.get(position),
-                        char_size=charsize, font=font, color=Color.get(color), place=place)
+        _Label.__init__(self, layout=layout, place=place, place_location=offset,
+                        char_size=charsize, font=font, color=Color.get(color))
 
-    def set(self, s=None, layout=None, position=None, charsize=None, font=None,
-            color=None, place=None, **kwargs):
+    def set(self, s=None, layout=None, place=None, offset=None, charsize=None, font=None,
+            color=None, **kwargs):
         """set the label to s
 
         Args:
@@ -427,10 +429,10 @@ class Label(_Label):
         """
         _raise_unknown_attr(self, *kwargs)
         if s:
-            self.label = encode_string(str(s))
+            self.label = s
         self._set(layout=layout, color=Color.get(color),
-                  place_position=Position.get(position), char_size=charsize,
-                  font=font, place=place)
+                  place=place, char_size=charsize,
+                  font=font, place_location=offset)
 
     def export(self):
         _logger.debug("exporting label: %s", self.label)
@@ -476,21 +478,21 @@ class TickLabel(_TickLabel):
 
 class Errorbar(_Errorbar):
     """User interface of dataset errorbar appearance"""
-    def __init__(self, switch=None, position=None, color=None, pattern=None, size=None,
+    def __init__(self, switch=None, place=None, color=None, pattern=None, size=None,
                  lw=None, ls=None, rlw=None, rls=None, rc=None, rcl=None, **kwargs):
         _raise_unknown_attr(self, *kwargs)
         _Errorbar.__init__(self, errorbar_switch=Switch.get(switch),
-                           place_position=Position.get(position), color=Color.get(color),
+                           place_placement=Placement.get(place), color=Color.get(color),
                            pattern=Pattern.get(pattern), size=size, linewidth=lw,
                            linestyle=LineStyle.get(ls), riser_linewidth=rlw,
                            riser_linestyle=LineStyle.get(rls), riser_clip_switch=Switch.get(rc),
                            riser_clip_length=rcl)
 
-    def set(self, switch=None, position=None, color=None, pattern=None, size=None,
+    def set(self, switch=None, place=None, color=None, pattern=None, size=None,
             lw=None, ls=None, rlw=None, rls=None, rc=None, rcl=None, **kwargs):
         _raise_unknown_attr(self, *kwargs)
         self._set(errorbar_switch=Switch.get(switch),
-                  place_position=Position.get(position), color=Color.get(color),
+                  place_placement=Placement.get(place), color=Color.get(color),
                   pattern=Pattern.get(pattern), size=size, linewidth=lw,
                   linestyle=LineStyle.get(ls), riser_linewidth=rlw,
                   riser_linestyle=LineStyle.get(rls), riser_clip_switch=Switch.get(rc),
@@ -516,8 +518,8 @@ class Axis(_Axis):
                  major=None, mjc=None, mjs=None, mjlw=None, mjls=None, mjg=None,
                  mic=None, mis=None, mit=None,
                  milw=None, mils=None, mig=None,
-                 label=None, layout=None, position=None, lsize=None,
-                 lfont=None, lc=None, lplace=None,
+                 label=None, layout=None, lplace=None, loffset=None, lsize=None,
+                 lfont=None, lc=None,
                  ticklabel=None, tlf=None, formula=None, append=None, prepend=None,
                  angle=None, tlfont=None, tlc=None, skip=None, stagger=None,
                  tlplace=None, tloffset=None, tlo_switch=None, tlsize=None,
@@ -528,8 +530,8 @@ class Axis(_Axis):
         self._bar = Bar(switch=bar, color=bc, ls=bls, lw=blw)
         self._tick = Tick(major=major, mjc=mjc, mjs=mjs, mjlw=mjlw, mjls=mjls, mjg=mjg,
                           mic=mic, mis=mis, mit=mit, milw=milw, mils=mils, mig=mig)
-        self._label = Label(label=label, layout=layout, position=position, charsize=lsize,
-                            font=lfont, color=lc, place=lplace)
+        self._label = Label(label=label, layout=layout, place=lplace, offset=loffset, charsize=lsize,
+                            font=lfont, color=lc)
         self._ticklabel = TickLabel(switch=ticklabel, tlf=tlf, formula=formula, append=append,
                                     prepend=prepend, angle=angle, font=tlfont, color=tlc,
                                     skip=skip, stagger=stagger, offset=tloffset, charsize=tlsize,
@@ -657,7 +659,7 @@ class Dataset(_Dataset):
                                   af=af, append=append, prepend=prepend, prec=prec, offset=offset)
         if ebc is None:
             ebc = color
-        self._errorbar = Errorbar(switch=errorbar, position=ebpos, color=ebc, pattern=ebp,
+        self._errorbar = Errorbar(switch=errorbar, place=ebpos, color=ebc, pattern=ebp,
                                   size=ebsize, lw=eblw, ls=ebls, rlw=ebrlw, rls=ebrls, rc=ebrc,
                                   rcl=ebrcl)
     
@@ -1570,33 +1572,4 @@ class Plot:
             g = p._graphs
         return p, g
 
-
-def extract_data_from_agr(pagr):
-    """extract all data from agr file
-
-    Args:
-        pagr (str) : path to the agr file
-
-    Returns:
-        list, type of each dataset; list, each member is a dataset as a 2d-array
-    """
-    starts = []
-    ends = []
-    types = []
-    with open(pagr, 'r') as h:
-        for i, l in enumerate(h.readlines()):
-            if l.startswith("@type"):
-                # exclude @type line
-                starts.append(i+1)
-                types.append(l.split()[-1].lower())
-            if l == "&\n":
-                ends.append(i)
-    data = []
-    
-    with open(pagr, 'r') as h:
-        lines = h.readlines()
-        for i, (start, end) in enumerate(zip(starts, ends)):
-            s = StringIO("".join(lines[start:end]))
-            data.append(loadtxt(s, unpack=True))
-    return types, data
 

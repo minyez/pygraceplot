@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
 """supporting uitlities for grace plotting"""
+from __future__ import print_function
 import os
+from io import StringIO
 from re import sub, findall
+from numpy import loadtxt
 
 lower_greeks = ["alpha", "beta", "gamma", "theta", "omega"]
 upper_greeks = list(x.capitalize() for x in lower_greeks)
@@ -96,4 +99,38 @@ def get_filename_wo_ext(path):
     """
     fn = os.path.basename(os.path.abspath(path))
     return os.path.splitext(fn)[0]
+
+
+def extract_data_from_agr(pagr):
+    """extract all data from agr file
+
+    Args:
+        pagr (str) : path to the agr file
+
+    Returns:
+        list, type of each dataset; list, each member is a dataset as a 2d-array
+    """
+    starts = []
+    ends = []
+    types = []
+    with open(pagr, 'r') as h:
+        for i, l in enumerate(h.readlines()):
+            if l.startswith("@type"):
+                # exclude @type line
+                starts.append(i+1)
+                types.append(l.split()[-1].lower())
+            if l == "&\n":
+                ends.append(i)
+    data = []
+    
+    with open(pagr, 'r') as h:
+        lines = h.readlines()
+        for i, (start, end) in enumerate(zip(starts, ends)):
+            datastring = "".join(lines[start:end])
+            try:
+                s = StringIO(datastring)
+            except TypeError:
+                s = StringIO(unicode(datastring))
+            data.append(loadtxt(s, unpack=True))
+    return types, data
 

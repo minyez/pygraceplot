@@ -184,9 +184,27 @@ class Switch:
              True: "on", False: "off", None: "off"}
         return d.get(i)
 
+class Placement(_IntMap):
+    """Class for place contorl"""
+    BOTH = 0
+    NORMAL = 1
+    OPPO = 2
+    pair = {
+        "both": BOTH,
+        "normal": NORMAL,
+        "n": NORMAL,
+        "opposite": OPPO,
+        "oppo": OPPO,
+        }
 
-class Position(_IntMap):
-    """Class for position contorl"""
+    @classmethod
+    def get_str(cls, i):
+        """get the correspond attribute string"""
+        d = {cls.NORMAL: "normal", cls.BOTH: "both", cls.OPPO: "opposite"}
+        return d.get(i)
+
+class Pointing(_IntMap):
+    """Class for contorl of label pointing"""
     IN = -1
     BOTH = 0
     OUT = 1
@@ -294,14 +312,16 @@ class _BaseOutput(object):
                 if attr.endswith("_switch"):
                     temps = attr.replace("_switch", "") + " " + Switch.get_str(attrv)
                 # for inout attribute 
-                elif attr.endswith("_position"):
-                    temps = attr.replace("_position", "") + " " + Position.get_str(attrv)
+                elif attr.endswith("_pointing"):
+                    temps = attr.replace("_pointing", "") + " " + Pointing.get_str(attrv)
+                elif attr.endswith("_placement"):
+                    temps = attr.replace("_placement", "") + " " + Placement.get_str(attrv)
                 # for location-like attribute
                 elif attr.endswith("_location"):
                     temps = attr.replace("_location", "") + " " + f.format(*attrv)
                 # for arbitray string attribute
                 elif attr.endswith("_comment"):
-                    temps = attr.replace("_comment", "") + " " + f.format(attrv)
+                    temps = attr.replace("_comment", "") + " " + encode_string(f.format(attrv))
                 # remove the marker name in the attribute to avoid duplicate
                 temps = temps.replace(self._marker, "").replace("_", " ")
             else:
@@ -606,7 +626,7 @@ class _Tick(_BaseOutput):
     _marker = 'tick'
     _attrs = {
         'tick_switch': (bool, Switch.ON, "{:s}"),
-        'tick_position': (bool, Position.IN, "{:s}"),
+        'tick_pointing': (bool, Pointing.IN, "{:s}"),
         'default': (int, 6, "{:d}"),
         'major': (float, 1., "{:3.1f}"),
         'major_size': (float, 1.0, "{:8f}"),
@@ -621,7 +641,7 @@ class _Tick(_BaseOutput):
         'minor_linewidth': (float, 1.5, "{:3.1f}"),
         'minor_linestyle': (int, LineStyle.SOLID, "{:d}"),
         'place_rounded': (str, True, "{:s}"),
-        'place_position': (bool, Position.BOTH, "{:s}"),
+        'place_placement': (bool, Placement.BOTH, "{:s}"),
         'spec_type': (str, None, "{:s}"),
         }
 
@@ -659,11 +679,12 @@ class _Label(_BaseOutput):
     _marker = 'label'
     _attrs = {
         'layout': (str, 'para', '{:s}'),
-        'place_position': (bool, Position.AUTO, '{:s}'),
+        'place': (str, "auto", '{:s}'),
+        'place_location': (bool, [0., 0.], '{:8f}, {:8f}'),
         'char_size': (float, 1.5, "{:8f}"),
         'font': (int, 0, "{:d}"),
         'color': (int, Color.BLACK, "{:d}"),
-        'place': (str, "normal", "{:s}"),
+        'place_placement': (bool, Placement.NORMAL, "{:s}"),
         }
 
 class _TickLabel(_BaseOutput):
@@ -681,7 +702,7 @@ class _TickLabel(_BaseOutput):
         'color': (int, Color.BLACK, "{:d}"),
         'skip': (int, 0, "{:d}"),
         'stagger': (int, 0, "{:d}"),
-        'place': (str, "normal", "{:s}"),
+        'place_placement': (bool, Placement.NORMAL, "{:s}"),
         'offset_switch': (bool, Switch.AUTO, "{:s}"),
         'offset': (list, [0.00, 0.01], "{:8f} , {:8f}"),
         'start_type_switch': (bool, Switch.AUTO, "{:s}"),
@@ -696,9 +717,9 @@ class _Errorbar(_BaseOutput):
     _marker = 'errorbar'
     _attrs = {
         'errorbar_switch': (bool, Switch.ON, '{:s}'),
-        'place_position': (bool, Position.BOTH, '{:s}'),
+        'place_placement': (bool, Placement.BOTH, '{:s}'),
         'color': (int, Color.BLACK, '{:d}'),
-        'pattern': (int, 1, '{:d}'),
+        'pattern': (int, Pattern.SOLID, '{:d}'),
         'size': (float, 1.0, '{:8f}'),
         'linewidth': (float, 1.5, '{:3.1f}'),
         'linestyle': (int, LineStyle.SOLID, '{:d}'),

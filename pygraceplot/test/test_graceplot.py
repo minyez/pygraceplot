@@ -5,8 +5,8 @@ import unittest as ut
 import tempfile
 from itertools import product
 
-from pygraceplot.graceplot import (Color, Symbol,
-                                   Graph, View, World,
+from pygraceplot.graceplot import (Color, Symbol, Label, Axis,
+                                   Graph, View, World, Dataset,
                                    Plot)
 
 class test_View(ut.TestCase):
@@ -44,6 +44,21 @@ class test_World(ut.TestCase):
 class test_Axis(ut.TestCase):
     """test Axix functionality"""
 
+    """test the axis label setup"""
+    def test_label(self):
+        """raise for unknown attribute"""
+        a = Axis('x')
+        l = a._label
+        self.assertRaises(ValueError, l.set, not_an_attribute="label")
+        l.set(s=r"\Gamma")
+        self.assertEqual(r"\Gamma", l.label)
+
+    def test_ticklabel(self):
+        """raise for unknown attribute"""
+        a = Axis('x')
+        tl = a._ticklabel
+        self.assertRaises(ValueError, tl.set, not_an_attribute="ticklabel")
+        tl.set(switch="off")
 
 class test_Graph(ut.TestCase):
     """test graph operations"""
@@ -120,6 +135,10 @@ class test_Graph(ut.TestCase):
         g.axhline(0.0)
         # percentage
         g.axhline(0.5, loctype="view", xmin="10", xmax="80")
+        g.text("some annotation", [0.5, 0.5], loctype="view")
+        self.assertListEqual(g._objects[-1].string_location, [0.5, 0.5])
+        g.circle([0.5, 0.5], 0.1, 0.1)
+        g.export()
 
 
 class test_Plot(ut.TestCase):
@@ -178,6 +197,20 @@ class test_Plot(ut.TestCase):
         with open(tf.name, 'w') as h:
             p.write(h)
         tf.close()
+
+class test_Dataset(ut.TestCase):
+    """test for Dataset"""
+    def test_line(self):
+        """the line setup"""
+        d = Dataset(0, [0,], [0,])
+        d.set_line(width=1.0)
+        self.assertEqual(d._line.linewidth, 1.0)
+
+    def test_errobar(self):
+        """the errorbar setup"""
+        d = Dataset(0, [0,], [0,])
+        d.set_errorbar(color="red")
+        self.assertEqual(d._errorbar.color, Color.RED)
 
 
 if __name__ == "__main__":

@@ -28,4 +28,5 @@ ax.set_ylabel("ECI / meV", charsize=2)
 ax.set_xlabel("Index of cluster", charsize=2)
 ax.set_legend(loc="upper right", charsize=1.65)
 
+p.write("eci.agr")
 p.savefig("eci.eps")
