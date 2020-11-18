@@ -17,10 +17,21 @@ class test_string_encoder(ut.TestCase):
 
     def test_italic(self):
         """encoding special characters"""
-        self.assertEqual(encode_string(r"/this is italic/, this not"), 
+        self.assertEqual(encode_string(r"/this is italic/, this not"),
                          r"\f{Times-Italic}this is italic\f{}, this not")
-        self.assertEqual(encode_string(r"/italic here/, /also here/"), 
+        self.assertEqual(encode_string(r"/italic here/, /also here/"),
                          r"\f{Times-Italic}italic here\f{}, \f{Times-Italic}also here\f{}")
+
+    def test_super_or_subscript(self):
+        """encoding either super or subscript """
+        subs = [
+            ("A_{b}", "A\\sb\\N"),
+            ("A_{b}C_{d}", "A\\sb\\NC\\sd\\N"),
+            ("C^{d}", "C\\Sd\\N"),
+            ("A^{b}C_{d}", "A\\Sb\\NC\\sd\\N"),
+            ]
+        for latex, encoded in subs:
+            self.assertEqual(encode_string(latex), encoded)
 
 class test_file_ext(ut.TestCase):
     """test extension extract"""
@@ -40,7 +51,8 @@ class test_extract_data(ut.TestCase):
     def test_4g_1111(self):
         """extract data from four graph with 1 dataset each"""
         pagr = os.path.join(os.path.dirname(__file__), "fake_4g_1111.agr")
-        types, data = extract_data_from_agr(pagr)
+        legends, types, data = extract_data_from_agr(pagr)
+        self.assertEqual(len(legends), 4)
         self.assertEqual(len(types), 4)
         self.assertEqual(len(data), 4)
 

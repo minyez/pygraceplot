@@ -41,7 +41,7 @@ def _valid_rgb(r, g, b, name):
 
 class ColorMap(_MapOutput):
     """Class to map the color
-    
+
     Private attribute:
         _map (dict) : color map
         _cn (dict) : color names
@@ -155,7 +155,7 @@ class ColorMap(_MapOutput):
             name (str) : name of color, case-insensitive
         """
         try:
-            return self._cn.index(name.lower())
+            return self._cn.index(name)
         except ValueError:
             raise ValueError("color name {:s} is not found".format(name))
 

@@ -58,7 +58,7 @@ class Color(_IntMap):
             return None
         try:
             return get_int_const(cls.__name__, cls.pair, marker)
-        except ValueError:
+        except KeyError:
             return plot_colormap.get(marker)
         raise ValueError
 
@@ -235,7 +235,7 @@ class _Affix:
     def __init__(self, affix, is_prefix=False):
         self._affix = str(affix)
         self._is_prefix = is_prefix
-    
+
 
 class _BaseOutput(object):
     """abstract class for initializing and printing element object
@@ -308,10 +308,10 @@ class _BaseOutput(object):
                 # for Symbol
                 if attr == "type":
                     temps = f.format(attrv)
-                # for on off attribute 
+                # for on off attribute
                 if attr.endswith("_switch"):
                     temps = attr.replace("_switch", "") + " " + Switch.get_str(attrv)
-                # for inout attribute 
+                # for inout attribute
                 elif attr.endswith("_pointing"):
                     temps = attr.replace("_pointing", "") + " " + Pointing.get_str(attrv)
                 elif attr.endswith("_placement"):
@@ -414,7 +414,7 @@ class _Line(_BaseOutput):
         'color': (int, Color.BLACK, "{:d}"),
         'pattern': (int, 1, "{:d}"),
         }
-    
+
 class _Box(_BaseOutput):
     """Box of legend for internal use"""
     _marker = 'box'

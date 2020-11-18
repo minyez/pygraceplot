@@ -61,7 +61,7 @@ class Title(_Title):
         _Title.__init__(self, title_comment=title, size=fontsize,
                         color=Color.get(color), font=font)
         _raise_unknown_attr(self, *kwargs)
-    
+
     def set(self, title=None, font=None, fontsize=None, color=None, **kwargs):
         self._set(title_comment=title,
                   size=fontsize, color=Color.get(color), font=font)
@@ -190,7 +190,7 @@ class Frame(_Frame):
                  bgc=None, bgp=None, **kwargs):
         _raise_unknown_attr(self, *kwargs)
         _Frame.__init__(self, type=_Frame.get(ft), linestyle=LineStyle.get(ls), linewidth=lw,
-                        color=Color.get(color), pattern=Pattern.get(pattern), 
+                        color=Color.get(color), pattern=Pattern.get(pattern),
                         background_pattern=Pattern.get(bgp),
                         background_color=Color.get(bgc))
 
@@ -198,7 +198,7 @@ class Frame(_Frame):
             bgc=None, bgp=None, **kwargs):
         _raise_unknown_attr(self, *kwargs)
         self._set(type=_Frame.get(ft), linestyle=LineStyle.get(ls), linewidth=lw,
-                  color=Color.get(color), pattern=Pattern.get(pattern), 
+                  color=Color.get(color), pattern=Pattern.get(pattern),
                   background_pattern=Pattern.get(bgp),
                   background_color=Color.get(bgc))
 
@@ -212,7 +212,7 @@ class BaseLine(_BaseLine):
     def __init__(self, lt=None, switch=None, **kwargs):
         _raise_unknown_attr(self, *kwargs)
         _BaseLine.__init__(self, type=BaseLineType.get(lt), baseline_switch=Switch.get(switch))
-    
+
     def set(self, lt=None, switch=None, **kwargs):
         _raise_unknown_attr(self, *kwargs)
         self._set(type=BaseLineType.get(lt), baseline_switch=Switch.get(switch))
@@ -235,7 +235,7 @@ class Fill(_Fill):
         _raise_unknown_attr(self, *kwargs)
         _Fill.__init__(self, type=_Fill.get(ft), rule=rule, color=Color.get(color),
                        pattern=Pattern.get(pattern))
-    
+
     def set(self, ft=None, rule=None, color=None, pattern=None, **kwargs):
         _raise_unknown_attr(self, *kwargs)
         self._set(type=_Fill.get(ft), rule=rule, color=Color.get(color),
@@ -503,7 +503,7 @@ class Axis(_Axis):
 
     Args:
         axis (str) : in ['x', 'y', 'altx', 'alty']
-        switch (bool): 
+        switch (bool):
         at (str) : axis type
         offset (2-member list):
         bar (bool)
@@ -545,7 +545,7 @@ class Axis(_Axis):
     def export(self):
         if self.axis_switch is Switch.OFF:
             return [self._affix + self._marker + "  " + Switch.get_str(Switch.OFF),]
-        slist = _Axis.export(self) 
+        slist = _Axis.export(self)
         header = [self._bar, self._label, self._tick, self._ticklabel]
         for x in header:
             slist += [self._affix + self._marker + " " + i for i in x.export()]
@@ -555,7 +555,7 @@ class Axis(_Axis):
         """Bind Axis objects
 
         Args:
-            axis (Axis) : 
+            axis (Axis) :
         """
 
     def set_major(self, **kwargs):
@@ -600,7 +600,7 @@ class Axes(_Axes):
 
 class Dataset(_Dataset):
     """User interface of dataset object
-    
+
     Args:
         index
         xy (arraylike)
@@ -662,7 +662,7 @@ class Dataset(_Dataset):
         self._errorbar = Errorbar(switch=errorbar, place=ebpos, color=ebc, pattern=ebp,
                                   size=ebsize, lw=eblw, ls=ebls, rlw=ebrlw, rls=ebrls, rc=ebrc,
                                   rcl=ebrcl)
-    
+
     def xmin(self):
         """get the minimal value of abscissa"""
         return self.data.xmin()
@@ -779,7 +779,7 @@ class DrawLine(_DrawLine):
 
 class DrawEllipse(_DrawEllipse):
     """user interface of drawing line object
-    
+
     Args:
         xy (2-member Iterable) : location of center
         width (float) : width of ellipse
@@ -909,7 +909,7 @@ class Graph(_Graph):
             self._xaxis.set_major(major=(xmax-xmin)/nxticks)
         if not self._if_ytick_set:
             self._yaxis.set_major(major=(ymax-ymin)/nyticks)
-        
+
     def export(self):
         """export the header of graph, including `with g` part and data header"""
         slist = []
@@ -949,7 +949,7 @@ class Graph(_Graph):
 
     def get_axis(self, axis):
         """set axis
-        
+
         Args:
             axis (str) : x, y, altx, alty
         """
@@ -1023,7 +1023,7 @@ class Graph(_Graph):
 
     def plot(self, x, ys, **kwargs):
         """plot a dataset
-        
+
         multiple y can be parsed along with one x.
         In this case, the keyword arguments except `label`
         will be parsed for each y. `label` will be parsed
@@ -1046,7 +1046,7 @@ class Graph(_Graph):
                 extra.update(kwargs)
                 ds.append(Dataset(n+i+1, x, y, **extra))
             self._datasets.extend(ds)
-        else: 
+        else:
             ds = Dataset(self.ndata, x, ys, **kwargs)
             self._datasets.append(ds)
 
@@ -1063,7 +1063,7 @@ class Graph(_Graph):
         try:
             loc_token = kwargs["loc"]
         except KeyError:
-            # location of legend is specified
+            # location of legend is not specified
             pass
         else:
             if isinstance(loc_token, str):
@@ -1334,7 +1334,7 @@ class Plot:
         color (str/int) : default color
         bc (str/int) : background color
         background (str/int) : switch of background fill
-        qtgrace (bool) : if true, QtGrace comments will be added 
+        qtgrace (bool) : if true, QtGrace comments will be added
     """
     def __init__(self, nrows, ncols, hgap=0.02, vgap=0.02, bc=0, background=None,
                  lw=None, ls=None, color=None, pattern=None, font=None,
@@ -1399,7 +1399,7 @@ class Plot:
 
     def get(self, i=None):
         """Get the Graph object of index i
-        
+
         Args:
             i (int) : index of graph.
                 If not specified, all graphs are returned in a list
@@ -1419,7 +1419,7 @@ class Plot:
         """add a new graph
 
         the location and size of graph is determined by x/ymin/max.
-        
+
         Returns:
             Graph object of the new graph
         """
